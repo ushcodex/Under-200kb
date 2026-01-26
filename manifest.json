@@ -1,0 +1,23 @@
+{
+  "name": "Under 200KB",
+  "short_name": "Under200KB",
+  "start_url": "/?source=pwa",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#ff6b00",
+  "description": "Strict Limit File Compressor",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/Under200kb.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Under200kb.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
