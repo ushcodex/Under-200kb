@@ -1,7 +1,7 @@
 {
   "name": "Under 200KB — Ushcodex",
   "short_name": "Under 200KB",
-  "description": "Compress images and single-page PDFs to a strict size limit, and switch between JPG and PDF. Everything runs on your device.",
+  "description": "Compress an image or PDF to a strict size limit, and switch between JPG and PDF. Everything runs on your device.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",

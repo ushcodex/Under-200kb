@@ -232,6 +232,20 @@ await check('compression success, failure and direction are counted', async () =
   equal(day.get('a:download'), '1', 'download');
 });
 
+await check('every accepted event leaves a receiver receipt', async () => {
+  const before = store.hashes.get('u200kb:v1:rx') ? { ...Object.fromEntries(store.hashes.get('u200kb:v1:rx')) } : {};
+  await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'ping' } }));
+  const receipt = store.hashes.get('u200kb:v1:rx');
+  expect(receipt, 'no receiver hash written');
+  equal(receipt.get('event'), 'ping', 'last event');
+  expect(Number(receipt.get('at')) > Number(before.at || 0), 'timestamp advanced');
+  const today = new Date().toISOString().slice(0, 10);
+  expect(Number(store.hashes.get('u200kb:v1:day:' + today).get('rx')) >= 1, 'receiver counter');
+  // A ping must not inflate visits.
+  const visitField = store.hashes.get('u200kb:v1:day:' + today).get('pv');
+  equal(Number(visitField), 1, 'ping must not count as a visit');
+});
+
 await check('unknown events and junk payloads are ignored', async () => {
   const before = commandCount;
   const res = await run(collect, mockReq({
@@ -364,6 +378,8 @@ await check('health reports a working store without exposing secrets', async () 
   const body = res.json();
   equal(body.storage.reachable, true, 'reachable');
   equal(body.storage.reason, 'ok', 'reason');
+  equal(body.receiver.received, true, 'receiver receipt visible publicly');
+  expect(body.receiver.lastEvent, 'last event reported');
   expect(!body.env, 'env details require a session');
   expect(!JSON.stringify(body).includes('test-token'), 'token leaked');
   expect(!JSON.stringify(body).includes(base), 'endpoint leaked');

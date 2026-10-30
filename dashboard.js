@@ -30,6 +30,9 @@
     storageBox: $('storageBox'),
     storageBadge: $('storageBadge'),
     storageMessage: $('storageMessage'),
+    receiverLine: $('receiverLine'),
+    testResult: $('testResult'),
+    sendTest: $('sendTest'),
     recheck: $('recheck')
   };
 
@@ -214,6 +217,44 @@
     });
   }
 
+  function ago(iso) {
+    if (!iso) return '';
+    var seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+    if (seconds < 45) return 'just now';
+    if (seconds < 3600) return Math.round(seconds / 60) + ' min ago';
+    if (seconds < 86400) return Math.round(seconds / 3600) + ' h ago';
+    return Math.round(seconds / 86400) + ' d ago';
+  }
+
+  function renderReceiver(health, options) {
+    if (!el.receiverLine) return;
+    var receiver = (health && health.receiver) || null;
+    var container = options || {};
+    if (!receiver) {
+      el.receiverLine.textContent = 'Could not read the receiver status.';
+      return;
+    }
+    if (receiver.received) {
+      el.receiverLine.textContent = 'Last counter write: ' + ago(receiver.lastWriteAt) +
+        (receiver.lastEvent ? ' (' + receiver.lastEvent + ')' : '') + '.';
+      if (container.afterTest) {
+        showTest('The server received the test event. Counting works from this browser.', true);
+      }
+      return;
+    }
+    el.receiverLine.textContent = 'No counter writes received yet. Load the tool once, then check again.';
+    if (container.afterTest) {
+      showTest('The server did not receive the test event. A blocker, or an extension, is stopping /api/collect.', false);
+    }
+  }
+
+  function showTest(message, ok) {
+    if (!el.testResult) return;
+    el.testResult.textContent = message;
+    el.testResult.hidden = false;
+    el.testResult.className = 'msg ' + (ok ? 'msg-ok' : 'msg-warn');
+  }
+
   function renderStorage(health) {
     if (!el.storageBox) return;
     el.storageBox.hidden = false;
@@ -229,6 +270,7 @@
       message += ' ' + counter.daysTracked + ' day' + (counter.daysTracked === 1 ? '' : 's') + ' recorded so far.';
     }
     el.storageMessage.textContent = message;
+    renderReceiver(health);
   }
 
   function checkHealth() {
@@ -248,6 +290,37 @@
   }
 
   if (el.recheck) el.recheck.addEventListener('click', checkHealth);
+
+  if (el.sendTest) {
+    el.sendTest.addEventListener('click', function () {
+      if (el.testResult) el.testResult.hidden = true;
+      el.sendTest.disabled = true;
+      el.sendTest.textContent = 'Sending…';
+      var payload = JSON.stringify({ e: 'ping' });
+      fetch('/api/collect', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: payload
+      }).then(function (response) {
+        if (!response.ok) throw new Error('status ' + response.status);
+        return new Promise(function (resolve) { setTimeout(resolve, 700); });
+      }).then(function () {
+        return fetch('/api/health', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      }).then(function (response) { return response.json(); })
+        .then(function (health) {
+          renderStorage(health);
+          renderReceiver(health, { afterTest: true });
+        })
+        .catch(function () {
+          showTest('The browser could not reach /api/collect. Check for a content blocker.', false);
+        })
+        .then(function () {
+          el.sendTest.disabled = false;
+          el.sendTest.textContent = 'Send test event';
+        });
+    });
+  }
 
   function render(data) {
     state.data = data;

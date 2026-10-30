@@ -1,7 +1,7 @@
 # Under 200KB
 
-Compress a JPG, PNG or one-page PDF to a strict file-size limit, and switch between JPG and PDF
-on the way out. An [Ushcodex Technologies](https://ushcodex.tech/) tool.
+Compress an image or PDF to a strict file-size limit, and switch between JPG and PDF on the way
+out. An [Ushcodex Technologies](https://ushcodex.tech/) tool.
 
 **Live:** https://under200kb.ushcodex.tech/
 

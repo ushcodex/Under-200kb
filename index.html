@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Under 200KB | Compress images and PDFs to fit a size limit</title>
-<meta name="description" content="Compress a JPG, PNG or one-page PDF under 50KB, 100KB or 200KB, then convert between JPG and PDF. Free, no sign-up, and it runs in your browser.">
+<meta name="description" content="Compress an image or PDF under 50KB, 100KB or 200KB, then convert between JPG and PDF. Free, no sign-up, and it runs in your browser.">
 <meta name="author" content="Ushcodex Technologies">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://under200kb.ushcodex.tech/">
@@ -14,7 +14,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Under 200KB">
 <meta property="og:title" content="Under 200KB | Compress images and PDFs to fit a size limit">
-<meta property="og:description" content="Fit an image or one-page PDF under a strict upload limit. Files stay on your device.">
+<meta property="og:description" content="Fit an image or PDF under a strict upload limit. Files stay on your device.">
 <meta property="og:url" content="https://under200kb.ushcodex.tech/">
 <meta property="og:image" content="https://under200kb.ushcodex.tech/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -23,7 +23,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@ushcodex">
 <meta name="twitter:title" content="Under 200KB | Compress to any size limit">
-<meta name="twitter:description" content="Compress images and one-page PDFs to fit upload limits. Runs in your browser.">
+<meta name="twitter:description" content="Compress images and PDFs to fit upload limits. Runs in your browser.">
 <meta name="twitter:image" content="https://under200kb.ushcodex.tech/og-image.png">
 
 <link rel="icon" href="/ushcodex-icon.png" sizes="any">
@@ -535,7 +535,7 @@ footer a:hover { color: var(--purple-dark); }
 <script defer src="/analytics.js"></script>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Under 200KB","url":"https://under200kb.ushcodex.tech/","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Compress an image or single-page PDF to a strict file-size limit and convert between JPG and PDF in the browser.","publisher":{"@type":"Organization","name":"Ushcodex Technologies","url":"https://ushcodex.tech/"},"featureList":["Compress JPG, PNG and WebP images under a chosen size limit","Compress single-page PDFs","Convert images to PDF","Convert single-page PDFs to JPG","Offline after first visit"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Under 200KB","url":"https://under200kb.ushcodex.tech/","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Compress an image or a PDF to a strict file-size limit and convert between JPG and PDF in the browser.","publisher":{"@type":"Organization","name":"Ushcodex Technologies","url":"https://ushcodex.tech/"},"featureList":["Compress images under a chosen size limit","Compress PDFs","Convert images to PDF","Convert PDFs to JPG","Offline after first visit"]}</script>
 </head>
 <body>
 <a class="skip" href="#tool">Skip to the tool</a>
@@ -552,7 +552,7 @@ footer a:hover { color: var(--purple-dark); }
 <main class="wrap" id="tool">
   <section class="intro">
     <h1>Any file. Any limit.</h1>
-    <p class="lede">Fit a JPG, PNG or one-page PDF under the size limit your form asks for.</p>
+    <p class="lede">Fit an image or PDF under the size limit your form asks for.</p>
     <ol class="steps" aria-label="How it works">
       <li>Choose a file</li>
       <li>Set the limit</li>
@@ -568,7 +568,7 @@ footer a:hover { color: var(--purple-dark); }
           <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
         </svg>
         <span class="dz-title" id="dzTitle">Tap to choose a file</span>
-        <span class="dz-hint" id="dzHint">JPG, PNG or one-page PDF</span>
+        <span class="dz-hint" id="dzHint">Image or PDF</span>
         <span class="dz-note">Stays on your device</span>
         <input type="file" id="file" name="file" accept="image/*,application/pdf" aria-describedby="dzHint">
       </label>
@@ -611,14 +611,14 @@ footer a:hover { color: var(--purple-dark); }
             <input type="radio" name="format" id="fmtJpg" value="jpg">
             <span class="format-text">
               <strong>JPG image</strong>
-              <span class="format-desc">For a PDF: page one becomes a picture.</span>
+              <span class="format-desc">Anything becomes a picture.</span>
             </span>
           </label>
           <label class="format-opt" for="fmtPdf">
             <input type="radio" name="format" id="fmtPdf" value="pdf" checked>
             <span class="format-text">
               <strong>PDF document</strong>
-              <span class="format-desc">For an image: your picture becomes a PDF.</span>
+              <span class="format-desc">Anything becomes a document.</span>
             </span>
           </label>
         </div>
@@ -669,8 +669,8 @@ footer a:hover { color: var(--purple-dark); }
   <div class="wrap footer-inner">
     <p>Built by <a href="https://usman.engineer/">Usman</a> at <a href="https://ushcodex.tech/">Ushcodex Technologies</a>.</p>
     <div class="privacy-row">
+      <p class="tiny">Works with JPG, PNG, WebP, GIF, BMP, AVIF and PDF.</p>
       <button type="button" class="btn-quiet" id="privacyOpen" aria-haspopup="dialog">Privacy and analytics</button>
-      <span class="tiny" id="privacyState">Anonymous counts on</span>
     </div>
   </div>
 </footer>

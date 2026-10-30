@@ -41,6 +41,26 @@ async function storageVerdict() {
   return value;
 }
 
+/** When did the counter endpoint last record anything? One small read. */
+async function receiverStatus(storage) {
+  if (!storage.ok) return { received: false, lastWriteAt: null, lastEvent: null };
+  try {
+    const raw = await redis.command(['HGETALL', redis.key('rx')], 2000);
+    const fields = {};
+    if (Array.isArray(raw)) {
+      for (let i = 0; i < raw.length; i += 2) fields[String(raw[i])] = raw[i + 1];
+    }
+    const at = Number(fields.at || 0) || null;
+    return {
+      received: Boolean(at),
+      lastWriteAt: at ? new Date(at).toISOString() : null,
+      lastEvent: fields.event || null
+    };
+  } catch (e) {
+    return { received: false, lastWriteAt: null, lastEvent: null, reason: redis.describeError(e) };
+  }
+}
+
 async function handler(req, res) {
   if (req.method !== 'GET') {
     res.statusCode = 405;
@@ -55,6 +75,7 @@ async function handler(req, res) {
 
   const cookies = analytics.parseCookies(req.headers.cookie);
   const signedIn = analytics.verifySession(cookies[analytics.SESSION_COOKIE]);
+  const receiver = await receiverStatus(storage);
   const summary = {
     ok: true,
     storage: {
@@ -63,6 +84,7 @@ async function handler(req, res) {
       reason: storage.reason,
       message: REASONS[storage.reason] || REASONS.error
     },
+    receiver: receiver,
     checkedAt: new Date().toISOString()
   };
 
@@ -93,6 +115,7 @@ async function handler(req, res) {
       secret: Boolean(analytics.secret()),
       searchConsole: Boolean(process.env.U200_GSC_SERVICE_ACCOUNT_JSON && process.env.U200_GSC_SITE)
     },
+    receiver: receiver,
     counters: { daysTracked: daysTracked, lastSeen: lastSeen },
     checkedAt: new Date().toISOString()
   });
