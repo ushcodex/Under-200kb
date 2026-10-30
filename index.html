@@ -1,1 +1,670 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"><title>Under 200KB | Strict Limit File Compressor</title><meta name="description" content="Fix 'File Too Large' errors. Force Images & Single-Page PDFs to any size (50KB, 100KB, 200KB) securely on your device. 100% Client-Side."><meta name="keywords" content="compress image under 200kb, pdf compressor, passport photo resizer, reduce file size, convert jpg to pdf, ushcodex"><meta name="author" content="Usman Shehu Ahmad"><meta name="robots" content="index, follow"><link rel="canonical" href="https://under200kb.ushcodex.tech"><meta name="theme-color" content="#ff6b00"><meta property="og:type" content="website"><meta property="og:title" content="Under 200KB | The Strict Limit Engine"><meta property="og:description" content="I fixed the 'File Too Large' error. Force documents to fit any size limit securely. 100% Client-Side."><meta property="og:url" content="https://under200kb.ushcodex.tech"><meta property="og:image" content="https://under200kb.ushcodex.tech/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:site_name" content="Under 200KB"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@ushcodex"><meta name="twitter:title" content="Under 200KB | Fix Upload Errors"><meta name="twitter:description" content="Don't let file limits stop your application. Compress & Convert securely."><meta name="twitter:image" content="https://under200kb.ushcodex.tech/og-image.png"><link rel="icon" href="/ushcodex-icon.png"><link rel="apple-touch-icon" href="/Under200kb.png"><link rel="manifest" href="/manifest.json"><script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Under 200KB","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Browser-based tool to compress/convert images/PDFs to specific size limits.","author":{"@type":"Person","name":"Usman Shehu Ahmad","url":"https://usman.engineer"}}</script><script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script><script defer src="/_vercel/insights/script.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet"></noscript><style>:root{--bg:#050505;--card:#111;--prm:#ff6b00;--txt:#fff;--mut:#999;--brd:#333}*{box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);margin:0;padding:20px;min-height:100vh;display:flex;flex-direction:column;align-items:center}header{width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;padding:10px 0}.brand{font-family:'Space Mono',monospace;font-weight:700;font-size:1.4rem;letter-spacing:-1px;color:#fff;text-decoration:none}.brand span{color:var(--prm)}.ush-logo{height:35px;width:auto;opacity:0.8;transition:opacity 0.2s;filter:brightness(0) invert(1)}.ush-logo:hover{opacity:1}.card{background:var(--card);width:100%;max-width:480px;padding:25px;border-radius:16px;border:1px solid var(--brd);box-shadow:0 20px 50px #00000080}.hero-text{text-align:center;margin-bottom:25px}.hero-text h1{font-size:1.1rem;font-weight:700;margin:0 0 8px 0;color:#fff;font-family:'Space Mono';text-transform:uppercase;letter-spacing:-1px}.hero-text p{font-size:0.85rem;color:var(--mut);margin:0 0 15px 0;line-height:1.4}.steps{display:inline-block;background:#1a1a1a;padding:6px 12px;border-radius:4px;color:var(--prm);font-size:0.75rem;font-family:'Space Mono';border:1px dashed #333}.drop{border:2px dashed var(--brd);background:#0a0a0a;border-radius:12px;padding:20px;text-align:center;cursor:pointer;position:relative;transition:all 0.2s;min-height:140px;display:flex;flex-direction:column;justify-content:center;align-items:center}.drop:hover{border-color:var(--prm);background:#161616}.drop.active{border-color:var(--prm);background:#1a0f00}input[type="file"]{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:10}.holder svg{width:32px;height:32px;color:var(--prm);opacity:.9;margin-bottom:8px}.holder p{margin:0;color:#fff;font-weight:600;font-size:0.9rem}.holder span{color:var(--mut);font-size:0.75rem;font-weight:400}#pv{display:none;width:100%}#t_img{max-height:100px;max-width:100%;border-radius:6px;border:1px solid #333;margin-bottom:5px;object-fit:contain;opacity:0.6}.config{margin-top:20px;display:grid;grid-template-columns:1.5fr 1fr;gap:10px}.input-group{position:relative}input[type="number"],select{width:100%;background:#0a0a0a;color:#fff;padding:14px;border:1px solid var(--brd);border-radius:8px;font-family:'Space Mono';font-size:0.95rem;appearance:none}input[type="number"]:focus,select:focus{outline:none;border-color:var(--prm)}.unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#aaa;font-family:'Space Mono';font-size:0.75rem;pointer-events:none}select{background-image:url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FF6B00%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");background-repeat:no-repeat;background-position:right 12px top 50%;background-size:10px auto}.btn{background:var(--prm);color:#000;border:none;width:100%;padding:16px;font-size:1rem;font-weight:800;text-transform:uppercase;border-radius:8px;margin-top:20px;cursor:pointer;font-family:'Space Mono';transition:filter 0.2s}.btn:hover{filter:brightness(1.1)}.btn:disabled{opacity:.5;cursor:not-allowed}#resArea{display:none;margin-top:25px;padding-top:20px;border-top:1px dashed var(--brd);animation:fadeIn 0.3s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.success-tag{display:inline-block;background:#064e3b;color:#34d399;padding:4px 10px;border-radius:4px;font-family:'Space Mono';font-size:0.75rem;margin-bottom:15px}#resImg{max-width:100%;height:auto;border-radius:8px;border:2px solid var(--prm);margin:0 auto 20px;display:block;box-shadow:0 10px 30px rgba(0,0,0,0.5)}.dl-btn{display:block;width:100%;background:#fff;color:#000;padding:14px;text-align:center;border-radius:8px;font-weight:700;text-decoration:none;margin-bottom:20px}.share-card{background:#1a1a1a;padding:15px;border-radius:8px;text-align:center;border:1px solid #333}.share-card p{margin:0 0 10px 0;font-size:0.85rem;color:#ccc}.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.share-btn,.save-btn{background:transparent;border:1px solid #444;color:var(--mut);padding:8px;border-radius:6px;font-size:0.8rem;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:5px;transition:all 0.2s}.share-btn:hover,.save-btn:hover{border-color:var(--prm);color:var(--prm)}footer{margin-top:auto;padding:40px 0;color:var(--mut);font-size:.75rem;text-align:center;line-height:1.6;max-width:400px}footer a{color:#888;text-decoration:none;border-bottom:1px dotted #666}footer a:hover{color:var(--prm);border-color:var(--prm)}@media(min-width:768px){header,.card,footer{max-width:850px}.card{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:40px;align-items:start}.hero-text{grid-column:1/-1}.drop{grid-row:2/6;height:100%;min-height:300px}.config{margin-top:0}#resArea{border-top:0;margin-top:0;padding-top:0}.btn{margin-top:20px}}</style></head><body><header><a href="/" class="brand">UNDER<span>200KB</span></a><a href="https://ushcodex.tech"><img src="ushcodex-logo.svg" alt="Ushcodex" class="ush-logo" width="140" height="45"></a></header><main class="card"><div class="hero-text"><h1>Any File. Any Limit.</h1><p>Fix "File Too Large" errors instantly. Force Images & Single-Page PDFs to fit any size securely.</p><div class="steps">Upload &rarr; Set Limit &rarr; Format &rarr; Download</div></div><div class="drop" id="dz"><input type="file" id="fi" accept="image/*,.pdf" aria-label="Upload File"><div class="holder" id="ph"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg><p>Tap to Upload</p><span>JPG, PNG, or Single PDF</span></div><div class="prev" id="pv"><img id="t_img" alt="Preview"><div id="fn" style="font-family:'Space Mono';font-size:0.75rem;color:#888"></div><div id="os" style="font-family:'Space Mono';font-size:0.75rem;color:#666;margin-top:2px"></div></div></div><div class="config"><div class="input-group"><input type="number" id="sz" value="200" placeholder="Limit" aria-label="Max File Size"><span class="unit">KB MAX</span></div><select id="fmt" aria-label="Output Format"><option value="jpg">JPG</option><option value="pdf">PDF</option></select></div><button class="btn" onclick="startComp()" id="go">Crush It</button><div id="resArea"><div id="stat" class="success-tag"></div><img id="resImg" alt="Result Preview"><a id="dl" class="dl-btn">Download Result</a><div class="share-card"><p>Did this save your application? Help a friend.</p><div class="share-actions"><button onclick="shareResult()" class="share-btn"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>Share</button><button onclick="saveApp()" class="save-btn"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>Save Tool</button></div></div></div></main><footer>Built by <a href="https://usman.engineer">Usman</a>. Engineered at <a href="https://ushcodex.tech">Ushcodex</a>.<br><br><strong>Privacy Note:</strong> Your files never leave your phone. We physically couldn't see them even if we wanted to.</footer><script>console.log("%c Engineered by Ushcodex ","background:#ff6b00;color:#000;font-weight:bold;padding:5px");let deferredPrompt;if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js')})}window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e});window.saveApp=async()=>{if(deferredPrompt){deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;deferredPrompt=null}else{const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;const msg=isIOS?"To install on iPhone:\n\n1. Tap the Share button (square with arrow)\n2. Scroll down and tap 'Add to Home Screen'":"To save this tool:\n\nTap your browser menu (⋮) and select 'Install App' or 'Add to Home Screen'.";alert(msg)}};const fi=document.getElementById('fi'),dz=document.getElementById('dz'),ph=document.getElementById('ph'),pv=document.getElementById('pv'),t_img=document.getElementById('t_img'),resArea=document.getElementById('resArea'),fmt=document.getElementById('fmt');let pdfLoaded=false;async function loadLibs(){if(pdfLoaded)return;const s1=document.createElement('script');s1.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s1.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";};document.body.appendChild(s1);const s2=document.createElement('script');s2.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";document.body.appendChild(s2);pdfLoaded=true;}fi.addEventListener('change',async function(e){if(e.target.files[0]){loadLibs();let f=e.target.files[0];document.getElementById('fn').textContent=f.name;let fs=f.size/1024;document.getElementById('os').textContent='Original: '+(fs>1024?(fs/1024).toFixed(2)+' MB':fs.toFixed(0)+' KB');ph.style.display='none';pv.style.display='block';resArea.style.display='none';dz.classList.add('active');if(f.type==='application/pdf'){fmt.value='pdf';t_img.src='';let r=new FileReader();r.onload=async function(){if(typeof pdfjsLib==='undefined')await new Promise(r=>setTimeout(r,500));let loadingTask=pdfjsLib.getDocument(r.result);let pdf=await loadingTask.promise;let page=await pdf.getPage(1);let vp=page.getViewport({scale:1.5});let cvs=document.createElement('canvas');cvs.width=vp.width;cvs.height=vp.height;await page.render({canvasContext:cvs.getContext('2d'),viewport:vp}).promise;t_img.src=cvs.toDataURL()};r.readAsArrayBuffer(f);}else{fmt.value='jpg';t_img.src=URL.createObjectURL(f);}}});window.startComp=async function(){if(typeof window.jspdf==='undefined')await new Promise(r=>setTimeout(r,500));let size=parseFloat(document.getElementById('sz').value);let outType=fmt.value;let btn=document.getElementById('go'),resImg=document.getElementById('resImg'),dl=document.getElementById('dl'),stat=document.getElementById('stat');if(!fi.files[0])return alert("Upload a file first!");btn.textContent="Crunching...";btn.disabled=true;let img=new Image();img.onload=async function(){let cvs=document.createElement('canvas');let ctx=cvs.getContext('2d');let w=img.width,h=img.height;if(w>2500){h=Math.round(h*(2500/w));w=2500;}cvs.width=w;cvs.height=h;ctx.drawImage(img,0,0,w,h);let q=0.9,blob=null,limit=size*1024;if(outType==='pdf')limit=limit-3000;do{blob=await new Promise(r=>cvs.toBlob(r,'image/jpeg',q));if(blob.size>limit)q-=0.05;}while(blob.size>limit&&q>0.1);let finalUrl,ext;let finalSize=(blob.size/1024).toFixed(0);if(outType==='pdf'){const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:w>h?'l':'p',unit:'px',format:[w,h]});doc.addImage(URL.createObjectURL(blob),'JPEG',0,0,w,h);let pdfBlob=doc.output('blob');finalUrl=URL.createObjectURL(pdfBlob);ext=".pdf";finalSize=(pdfBlob.size/1024).toFixed(0);}else{finalUrl=URL.createObjectURL(blob);ext=".jpg";}stat.textContent=document.getElementById('os').textContent.replace('Original: ','')+' -> '+finalSize+' KB';resImg.src=outType==='pdf'?t_img.src:finalUrl;dl.href=finalUrl;dl.download=`Under${size}KB_${Math.floor(Math.random()*1000)}${ext}`;resArea.style.display='block';btn.textContent="Crush Another";btn.disabled=false;};img.onerror=function(){alert("Error loading file.");btn.disabled=false;btn.textContent="Try Again";};img.src=t_img.src;};window.shareResult=async()=>{const d={title:'Under 200KB',text:'Fix "File Too Large" errors instantly. Forces images & PDFs to any size limit securely on your phone.',url:'https://under200kb.ushcodex.tech'};if(navigator.share){try{await navigator.share(d)}catch(e){}}else{navigator.clipboard.writeText(d.url);alert('Link copied!');}};window.saveApp=()=>{alert("To save this tool:\n\n1. Tap your browser menu (⋮ or Share)\n2. Select 'Add to Home Screen'\n\nIt works offline!");};</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Under 200KB — Compress images &amp; PDFs to a size limit</title>
+<meta name="description" content="Free tool to compress a JPG, PNG or single-page PDF under 50KB, 100KB or 200KB. Convert images to PDF and PDFs to JPG. Runs 100% in your browser — files never upload.">
+<meta name="author" content="Ushcodex Technologies">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://under200kb.ushcodex.tech/">
+<meta name="theme-color" content="#f7f6f2">
+<meta name="color-scheme" content="light">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Under 200KB">
+<meta property="og:title" content="Under 200KB — Compress images &amp; PDFs to a size limit">
+<meta property="og:description" content="Fit an image or single-page PDF under a strict upload limit. Nothing leaves your device.">
+<meta property="og:url" content="https://under200kb.ushcodex.tech/">
+<meta property="og:image" content="https://under200kb.ushcodex.tech/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Under 200KB, an Ushcodex Technologies tool for compressing files to a strict size limit.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@ushcodex">
+<meta name="twitter:title" content="Under 200KB — Compress to any size limit">
+<meta name="twitter:description" content="Compress images and single-page PDFs to fit upload limits. 100% client-side.">
+<meta name="twitter:image" content="https://under200kb.ushcodex.tech/og-image.png">
+
+<link rel="icon" href="/ushcodex-icon.png" sizes="any">
+<link rel="apple-touch-icon" href="/Under200kb.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-600.woff2" as="font" type="font/woff2" crossorigin>
+<style id="app-css">
+/* Under 200KB — Ushcodex Technologies
+   Palette: paper #f7f6f2 · ink #1b1a20 · purple #5f30aa · accent #ef7738
+   Text pairs are chosen for WCAG AA (most AAA): see tests/contrast.test.mjs */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-600.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/space-mono-700.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --paper: #f7f6f2;
+  --surface: #ffffff;
+  --ink: #1b1a20;
+  --ink-2: #4b4854;
+  --ink-3: #57535f;
+  --purple: #5f30aa;
+  --purple-dark: #4a2385;
+  --purple-tint: #efe9f8;
+  --orange: #ef7738;
+  --orange-ink: #a53f14;
+  --line: #e3ded3;
+  --line-control: #8b8375;
+  --ok: #0f6b4f;
+  --ok-bg: #e8f4ef;
+  --warn: #7a4a00;
+  --warn-bg: #fdf3e3;
+  --err: #a3231b;
+  --err-bg: #fdecea;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(27, 26, 32, .05), 0 12px 32px -12px rgba(27, 26, 32, .16);
+  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { width: 100%; max-width: 60rem; margin: 0 auto; padding: 0 1rem; }
+
+a { color: var(--purple); text-underline-offset: .18em; }
+a:hover { color: var(--purple-dark); }
+
+/* Visible, consistent focus for every control (WCAG 2.4.7 / 2.4.11) */
+:focus-visible {
+  outline: 3px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.skip {
+  position: absolute;
+  left: .5rem;
+  top: -3rem;
+  z-index: 20;
+  background: var(--purple);
+  color: #fff;
+  padding: .6rem .9rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: top .15s ease;
+}
+.skip:focus { top: .5rem; color: #fff; }
+
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* ---------- header ---------- */
+.topbar { padding: .75rem 0; border-bottom: 1px solid var(--line); background: var(--paper); }
+.topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+
+.brand {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: .1rem;
+  padding: .35rem .1rem;
+}
+.brand b { font-weight: 700; color: var(--purple); }
+.brand:hover { color: var(--ink); }
+.brand:hover b { color: var(--purple-dark); }
+
+.ush-link { display: inline-flex; align-items: center; padding: .4rem .25rem; border-radius: 8px; }
+.ush-link img { height: 26px; width: auto; display: block; }
+
+/* ---------- intro ---------- */
+main { flex: 1 0 auto; padding-bottom: 2.5rem; }
+
+.intro { padding: 1.75rem 0 1.25rem; max-width: 40rem; }
+.eyebrow {
+  margin: 0 0 .5rem;
+  font-size: .8125rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--orange-ink);
+}
+h1 {
+  font-size: clamp(1.7rem, 6vw, 2.35rem);
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  margin: 0 0 .6rem;
+  font-weight: 600;
+}
+.lede { margin: 0 0 1rem; color: var(--ink-2); font-size: 1.0625rem; max-width: 34rem; }
+
+.steps {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .5rem;
+  margin: 0;
+  padding: 0;
+  font-size: .8125rem;
+  color: var(--ink-3);
+  counter-reset: step;
+}
+.steps li { display: inline-flex; align-items: center; gap: .4rem; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: .25rem .6rem .25rem .3rem; }
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  display: inline-grid;
+  place-items: center;
+  width: 1.15rem; height: 1.15rem;
+  border-radius: 50%;
+  background: var(--purple-tint);
+  color: var(--purple);
+  font-family: var(--mono);
+  font-size: .75rem;
+}
+
+/* ---------- tool card ---------- */
+.tool {
+  display: grid;
+  gap: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  margin-top: .5rem;
+}
+
+/* dropzone */
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem;
+  text-align: center;
+  min-height: 11rem;
+  padding: 1.25rem 1rem;
+  border: 2px dashed var(--line-control);
+  border-radius: 12px;
+  background: #fbfaf7;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.dropzone:hover { border-color: var(--purple); background: var(--purple-tint); }
+.dropzone:focus-within { border-color: var(--purple); background: var(--purple-tint); outline: 3px solid var(--purple); outline-offset: 2px; }
+.dropzone.is-dragging { border-color: var(--purple); background: var(--purple-tint); }
+.dropzone svg { width: 1.75rem; height: 1.75rem; color: var(--purple); }
+.dz-title { font-weight: 600; font-size: 1.0625rem; color: var(--ink); }
+.dz-hint { font-size: .875rem; color: var(--ink-3); }
+.dz-note { margin-top: .35rem; font-size: .75rem; color: var(--ink-3); }
+.dropzone input[type=file] {
+  /* The whole zone is the control: keep the native input covering it so the
+     hit area is large on phones and the focus ring lands on the right place. */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.dropzone.has-file {
+  min-height: 0;
+  padding: .8rem 1rem;
+  gap: .15rem;
+}
+.dropzone.has-file svg { display: none; }
+.dropzone.has-file .dz-title { font-size: .9375rem; }
+.dropzone.has-file .dz-note { display: none; }
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-top: .75rem;
+  padding: .6rem .75rem;
+  background: #fbfaf7;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.file-info img {
+  width: 3rem; height: 3rem;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  flex: 0 0 auto;
+}
+.file-meta { min-width: 0; flex: 1 1 auto; }
+.file-name {
+  margin: 0;
+  font-size: .9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.file-size { margin: .1rem 0 0; font-size: .8125rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+/* controls */
+.controls { border: 0; margin: 0; padding: 0; display: grid; gap: 1.1rem; }
+.field { display: grid; gap: .4rem; }
+.field > label, .field > .label, legend {
+  font-weight: 600;
+  font-size: .9375rem;
+  color: var(--ink);
+  padding: 0;
+}
+fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+fieldset > legend { margin-bottom: .45rem; }
+.controls > legend { margin-bottom: .1rem; font-size: 1.0625rem; }
+
+.size-row { display: flex; gap: .5rem; align-items: stretch; flex-wrap: wrap; }
+.size-input { position: relative; flex: 1 1 8rem; min-width: 0; }
+.size-input input {
+  width: 100%;
+  min-height: 3rem;
+  padding: .6rem 2.9rem .6rem .8rem;
+  border: 1.5px solid var(--line-control);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 1.0625rem;
+  font-variant-numeric: tabular-nums;
+}
+.size-input .unit {
+  position: absolute;
+  right: .8rem; top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: .8125rem;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+.presets { display: flex; gap: .4rem; }
+.preset {
+  min-height: 3rem;
+  min-width: 3rem;
+  padding: .5rem .7rem;
+  border: 1.5px solid var(--line-control);
+  background: #fff;
+  color: var(--ink-2);
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: .875rem;
+  cursor: pointer;
+}
+.preset:hover { border-color: var(--purple); color: var(--purple-dark); }
+.preset[aria-pressed=true] { background: var(--purple-tint); border-color: var(--purple); color: var(--purple-dark); }
+
+.help { margin: 0; font-size: .8125rem; color: var(--ink-3); }
+.help strong { color: var(--ink-2); }
+
+/* format choices */
+.formats { display: grid; gap: .5rem; }
+.format-opt {
+  position: relative;
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+  padding: .65rem .75rem;
+  border: 1.5px solid var(--line-control);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  min-height: 3rem;
+}
+.format-opt:hover { border-color: var(--purple); }
+.format-opt input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  width: 1.15rem; height: 1.15rem;
+  margin: .15rem 0 0;
+  border: 2px solid var(--line-control);
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+.format-opt input:checked { border-color: var(--purple); border-width: 5px; }
+.format-opt:has(input:checked) { border-color: var(--purple); background: var(--purple-tint); }
+.format-opt input:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+.format-text { display: grid; gap: .1rem; }
+.format-text strong { font-size: .9375rem; font-weight: 600; color: var(--ink); }
+.format-desc { font-size: .8125rem; color: var(--ink-3); }
+.format-opt:has(input:checked) .format-desc { color: var(--ink-2); }
+
+/* buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: .8rem 1.1rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--purple);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+.btn-primary:hover { background: var(--purple-dark); color: #fff; }
+.btn-primary:disabled { background: var(--ink-3); cursor: progress; }
+.btn-primary[aria-disabled=true] { background: var(--ink-3); pointer-events: none; }
+.btn-primary svg { width: 1.15rem; height: 1.15rem; }
+
+.btn-quiet {
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  padding: .4rem .7rem;
+  border: 1.5px solid var(--line-control);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-quiet:hover { border-color: var(--purple); color: var(--purple-dark); }
+
+/* status + error messages */
+.status { margin: .5rem 0 0; font-size: .875rem; color: var(--ink-2); min-height: 1.25rem; }
+.msg {
+  margin: .75rem 0 0;
+  padding: .7rem .85rem;
+  border-radius: 10px;
+  font-size: .875rem;
+  border: 1px solid transparent;
+}
+.msg-error { background: var(--err-bg); border-color: #f2c9c5; color: var(--err); }
+.msg-ok { background: var(--ok-bg); border-color: #c7e3d7; color: var(--ok); }
+.msg-warn { background: var(--warn-bg); border-color: #edd9b2; color: var(--warn); }
+
+/* ---------- result ---------- */
+.result {
+  margin-top: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.1rem;
+}
+.result h2 { margin: 0 0 .75rem; font-size: 1.125rem; font-weight: 600; }
+.result-body { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+.result-body img {
+  width: 5.5rem; height: 5.5rem;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fbfaf7;
+}
+.result-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: .6rem; margin: 0; flex: 1 1 12rem; }
+.result-stats div { background: #fbfaf7; border: 1px solid var(--line); border-radius: 10px; padding: .45rem .6rem; }
+.result-stats dt { font-size: .75rem; color: var(--ink-3); margin: 0; }
+.result-stats dd { margin: .1rem 0 0; font-family: var(--mono); font-size: .9375rem; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+.out-name {
+  margin: 1rem 0 .4rem;
+  font-size: .875rem;
+  color: var(--ink-3);
+}
+.out-name b { display: block; font-family: var(--mono); font-size: .875rem; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+
+.result-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+.result-actions .btn-quiet { min-height: 2.75rem; flex: 1 1 8rem; }
+
+/* ---------- footer ---------- */
+footer { border-top: 1px solid var(--line); background: var(--paper); padding: 1.5rem 0 2rem; font-size: .875rem; color: var(--ink-3); }
+.footer-inner { display: grid; gap: .75rem; }
+footer p { margin: 0; }
+footer a { color: var(--ink-2); }
+footer a:hover { color: var(--purple-dark); }
+
+details.privacy { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: .6rem .8rem; }
+details.privacy summary { cursor: pointer; font-weight: 600; color: var(--ink-2); min-height: 1.75rem; display: flex; align-items: center; gap: .4rem; }
+details.privacy summary::marker { color: var(--purple); }
+details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
+.optout { display: flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--ink-2); }
+.optout input { width: 1.15rem; height: 1.15rem; accent-color: var(--purple); flex: 0 0 auto; }
+.tiny { font-size: .8125rem; color: var(--ink-3); }
+
+/* ---------- desktop ---------- */
+@media (min-width: 56rem) {
+  .topbar { padding: 1rem 0; }
+  .brand { font-size: 1.3rem; }
+  .ush-link img { height: 30px; }
+  .intro { padding: 2.5rem 0 1.5rem; }
+  .tool {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.75rem;
+    padding: 1.75rem;
+    align-items: start;
+  }
+  .dropzone { min-height: 16.5rem; }
+  .result { padding: 1.5rem; }
+  .footer-inner { grid-template-columns: 1fr auto; align-items: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+/* Print: keep it simple */
+@media print {
+  .topbar, footer, .result-actions, .btn-primary { display: none !important; }
+  body { background: #fff; }
+}
+</style>
+<script defer src="/app.js"></script>
+<script defer src="/analytics.js"></script>
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Under 200KB","url":"https://under200kb.ushcodex.tech/","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Compress an image or single-page PDF to a strict file-size limit and convert between JPG and PDF in the browser.","publisher":{"@type":"Organization","name":"Ushcodex Technologies","url":"https://ushcodex.tech/"},"featureList":["Compress JPG, PNG and WebP images under a chosen size limit","Compress single-page PDFs","Convert images to PDF","Convert single-page PDFs to JPG","Offline after first visit"]}</script>
+</head>
+<body>
+<a class="skip" href="#tool">Skip to the tool</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="/" aria-label="Under200KB — home">Under<b>200KB</b></a>
+    <a class="ush-link" href="https://ushcodex.tech/" aria-label="Ushcodex Technologies — main website">
+      <img src="/ushcodex-logo.svg" alt="Ushcodex Technologies" width="140" height="45" decoding="async">
+    </a>
+  </div>
+</header>
+
+<main class="wrap" id="tool">
+  <section class="intro">
+    <p class="eyebrow">Ushcodex Technologies · Free tool</p>
+    <h1>Any file. Any limit.</h1>
+    <p class="lede">Get past “file too large” errors. Squeeze a JPG, PNG or single-page PDF under the exact limit a form asks for — and switch between JPG and PDF on the way out.</p>
+    <ol class="steps" aria-label="How it works">
+      <li>Choose a file</li>
+      <li>Set the limit</li>
+      <li>Pick a format</li>
+      <li>Download</li>
+    </ol>
+  </section>
+
+  <form class="tool" id="toolForm" novalidate>
+    <div>
+      <label class="dropzone" id="dropzone" for="file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+        </svg>
+        <span class="dz-title" id="dzTitle">Tap to choose a file</span>
+        <span class="dz-hint" id="dzHint">JPG, PNG or a single-page PDF — or drag it here</span>
+        <span class="dz-note">Files are processed on your device. Nothing is uploaded.</span>
+        <input type="file" id="file" name="file" accept="image/*,application/pdf" aria-describedby="dzHint">
+      </label>
+
+      <div class="file-info" id="fileInfo" hidden>
+        <img id="thumb" alt="Preview of the selected file" width="48" height="48" decoding="async">
+        <div class="file-meta">
+          <p class="file-name" id="fileName"></p>
+          <p class="file-size" id="fileSize"></p>
+        </div>
+        <button type="button" class="btn-quiet" id="clearFile">Change</button>
+      </div>
+
+      <p class="msg msg-error" id="fileError" role="alert" hidden></p>
+    </div>
+
+    <fieldset class="controls">
+      <legend>Settings</legend>
+
+      <div class="field">
+        <label for="size">Maximum file size</label>
+        <div class="size-row">
+          <div class="size-input">
+            <input type="number" id="size" name="size" value="200" min="20" max="20000" step="1" inputmode="numeric" autocomplete="off" aria-describedby="sizeHelp">
+            <span class="unit" aria-hidden="true">KB</span>
+          </div>
+          <div class="presets" role="group" aria-label="Common limits">
+            <button type="button" class="preset" data-kb="50" aria-pressed="false">50</button>
+            <button type="button" class="preset" data-kb="100" aria-pressed="false">100</button>
+            <button type="button" class="preset" data-kb="200" aria-pressed="true">200</button>
+          </div>
+        </div>
+        <p class="help" id="sizeHelp">The limit your upload form asks for, in kilobytes (KB).</p>
+      </div>
+
+      <fieldset class="field">
+        <legend>Destination format</legend>
+        <div class="formats" aria-describedby="formatHelp">
+          <label class="format-opt" for="fmtJpg">
+            <input type="radio" name="format" id="fmtJpg" value="jpg">
+            <span class="format-text">
+              <strong>JPG image</strong>
+              <span class="format-desc">Converts a single-page PDF into an image.</span>
+            </span>
+          </label>
+          <label class="format-opt" for="fmtPdf">
+            <input type="radio" name="format" id="fmtPdf" value="pdf" checked>
+            <span class="format-text">
+              <strong>PDF document</strong>
+              <span class="format-desc">Converts an image into a PDF.</span>
+            </span>
+          </label>
+        </div>
+        <p class="help" id="formatHelp">Pick JPG to turn a one-page PDF into an image, or PDF to wrap an image as a document.</p>
+      </fieldset>
+
+      <div>
+        <button type="submit" class="btn-primary" id="go">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M13 3v13m0 0l-4-4m4 4l4-4M4 19h16"></path>
+          </svg>
+          <span id="goLabel">Compress &amp; prepare download</span>
+        </button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </fieldset>
+  </form>
+
+  <section class="result" id="result" hidden aria-labelledby="resultHeading">
+    <h2 id="resultHeading" tabindex="-1">Your file is ready</h2>
+    <div class="result-body">
+      <img id="resultThumb" alt="" width="88" height="88" hidden decoding="async">
+      <dl class="result-stats">
+        <div><dt>New size</dt><dd id="outSize">—</dd></div>
+        <div><dt>Original</dt><dd id="outOriginal">—</dd></div>
+        <div><dt>Limit</dt><dd id="outLimit">—</dd></div>
+      </dl>
+    </div>
+    <p class="out-name">Download name <b id="outName">—</b></p>
+    <a class="btn-primary" id="download" download href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"></path>
+      </svg>
+      <span id="downloadLabel">Download</span>
+    </a>
+    <p class="msg msg-warn" id="resultWarn" hidden></p>
+    <div class="result-actions">
+      <button type="button" class="btn-quiet" id="again">Compress another file</button>
+      <button type="button" class="btn-quiet" id="share">Share this tool</button>
+    </div>
+  </section>
+
+  <noscript>
+    <p class="msg msg-error">Under 200KB compresses files inside your browser, so JavaScript is required. Please enable it and reload.</p>
+  </noscript>
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div>
+      <p>Built by <a href="https://usman.engineer/">Usman</a> at <a href="https://ushcodex.tech/">Ushcodex Technologies</a>.</p>
+      <p class="tiny">Free, no sign-up. Works offline once loaded.</p>
+    </div>
+    <details class="privacy">
+      <summary>Privacy &amp; analytics</summary>
+      <div>
+        <p class="tiny">Your files never leave this device — they are read and written in your browser only. We count anonymous page views and tool actions (such as “compression succeeded” and the JPG/PDF direction). We never collect file names, file contents, or IP addresses, and analytics never blocks the tool.</p>
+        <label class="optout" for="optout">
+          <input type="checkbox" id="optout">
+          <span id="optoutLabel">Don’t send anonymous usage counts</span>
+        </label>
+        <p class="tiny" id="optoutHint">Global Privacy Control and “Do Not Track” are respected automatically.</p>
+      </div>
+    </details>
+  </div>
+</footer>
+</body>
+</html>
