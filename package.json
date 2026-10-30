@@ -1,0 +1,19 @@
+{
+  "name": "under-200kb",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Under 200KB \u2014 compress images and single-page PDFs to a strict size limit, entirely in the browser. An Ushcodex Technologies tool.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "inline-css": "node scripts/inline-css.mjs",
+    "dev": "node tests/dev-server.mjs",
+    "test": "node tests/unit.test.mjs && node tests/api.test.mjs && node tests/ui.test.mjs && node tests/contrast.test.mjs",
+    "test:unit": "node tests/unit.test.mjs",
+    "test:api": "node tests/api.test.mjs",
+    "test:ui": "node tests/ui.test.mjs",
+    "test:contrast": "node tests/contrast.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3"
+  }
+}

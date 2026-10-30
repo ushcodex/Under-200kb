@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Under 200KB — private analytics</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f7f6f2">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="/ushcodex-icon.png" sizes="any">
+<link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/dashboard.css">
+<script defer src="/dashboard.js"></script>
+</head>
+<body>
+<a class="skip" href="#panel">Skip to analytics</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <span class="brand">Under<b>200KB</b> <span class="dash-tag">private</span></span>
+    <a class="ush-link" href="https://ushcodex.tech/" aria-label="Ushcodex Technologies — main website">
+      <img src="/ushcodex-logo.svg" alt="Ushcodex Technologies" width="140" height="45" decoding="async">
+    </a>
+  </div>
+</header>
+
+<main class="wrap dash" id="panel">
+  <h1 class="dash-title">Analytics</h1>
+
+  <section class="dash-card" id="loginCard" aria-labelledby="loginHeading">
+    <h2 id="loginHeading">Sign in</h2>
+    <p class="help">This dashboard is private to Under 200KB. It uses its own password (<code>U200_ANALYTICS_PASSWORD</code>), separate from any other Ushcodex dashboard.</p>
+    <form id="loginForm" class="dash-form" novalidate>
+      <label for="password">Dashboard password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required aria-describedby="loginHelp">
+      <p class="help" id="loginHelp">The session lasts 8 hours and is stored in an HttpOnly cookie.</p>
+      <button type="submit" class="btn-primary" id="loginButton">Open dashboard</button>
+    </form>
+    <p class="msg msg-error" id="loginError" role="alert" hidden></p>
+  </section>
+
+  <section id="dashboard" hidden aria-labelledby="dashHeading">
+    <div class="dash-bar">
+      <h2 id="dashHeading" class="sr-only">Under 200KB usage</h2>
+      <div class="tabs" role="group" aria-label="Date range">
+        <button type="button" class="tab" data-range="7" aria-pressed="false">7 days</button>
+        <button type="button" class="tab" data-range="30" aria-pressed="true">30 days</button>
+        <button type="button" class="tab" data-range="90" aria-pressed="false">90 days</button>
+        <button type="button" class="tab" data-range="all" aria-pressed="false">All time</button>
+      </div>
+      <div class="dash-bar-actions">
+        <button type="button" class="btn-quiet" id="refresh">Refresh</button>
+        <button type="button" class="btn-quiet" id="signOut">Sign out</button>
+      </div>
+    </div>
+
+    <p class="help" id="rangeNote"></p>
+    <p class="msg msg-error" id="dashError" role="alert" hidden></p>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grid2">
+      <section class="dash-card" aria-labelledby="sourcesH"><h3 id="sourcesH">Sources</h3><div id="sources"></div></section>
+      <section class="dash-card" aria-labelledby="devicesH"><h3 id="devicesH">Devices</h3><div id="devices"></div></section>
+      <section class="dash-card" aria-labelledby="countriesH"><h3 id="countriesH">Countries</h3><div id="countries"></div></section>
+      <section class="dash-card" aria-labelledby="actionsH"><h3 id="actionsH">Tool actions</h3><div id="actions"></div></section>
+    </div>
+
+    <section class="dash-card" aria-labelledby="dailyH">
+      <h3 id="dailyH">Daily visits</h3>
+      <div id="dailyChart" class="chart" aria-hidden="true"></div>
+      <div id="dailyTableWrap"></div>
+    </section>
+
+    <section class="dash-card" aria-labelledby="gscH">
+      <h3 id="gscH">Google Search Console <span class="dash-tag">site-wide</span></h3>
+      <p class="help">Aggregated search performance for the Under 200KB property over the last 28 days. It is not connected to visit counts, so a search term can never be tied to a visitor.</p>
+      <div id="gscBody"></div>
+    </section>
+
+    <p class="help tiny" id="footNote"></p>
+  </section>
+</main>
+</body>
+</html>
