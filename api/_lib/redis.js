@@ -109,6 +109,9 @@ async function diagnose() {
     const value = await command(['GET', probe], 2500);
     await command(['DEL', probe], 2500);
     if (!value) return { ok: false, reason: 'write-not-persisted' };
+    // Exercise the exact call the counter uses, still inside our namespace.
+    const piped = await pipeline([['HINCRBY', key('health', 'probes'), 'count', '1']], 2500);
+    if (Number(piped[0]) < 1) return { ok: false, reason: 'pipeline-failed' };
     return { ok: true, reason: 'ok' };
   } catch (error) {
     return { ok: false, reason: describeError(error) };
