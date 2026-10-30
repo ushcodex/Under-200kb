@@ -12,7 +12,7 @@ const redis = require('./_lib/redis');
 const analytics = require('./_lib/analytics');
 
 const REASONS = {
-  ok: 'Storage is connected and accepting writes.',
+  ok: 'Storage is connected and recording.',
   'not-configured': 'Add U200_ANALYTICS_REDIS_REST_URL and U200_ANALYTICS_REDIS_REST_TOKEN to this Vercel project, then redeploy.',
   'missing-url': 'U200_ANALYTICS_REDIS_REST_TOKEN is set but U200_ANALYTICS_REDIS_REST_URL is missing.',
   'missing-token': 'U200_ANALYTICS_REDIS_REST_URL is set but U200_ANALYTICS_REDIS_REST_TOKEN is missing.',
@@ -25,6 +25,7 @@ const REASONS = {
   'storage-unavailable': 'The database reported a server error.',
   'unexpected-response': 'The database answered in an unexpected way.',
   'write-not-persisted': 'The database accepted a write but did not return it.',
+  'pipeline-failed': 'The batched write that records visits did not go through.',
   timeout: 'The database did not answer in time.',
   error: 'The database call failed for an unknown reason.'
 };
