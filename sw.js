@@ -1,9 +1,9 @@
 /* Under 200KB service worker
- * v4 - network-first for pages so existing installs pick up UI changes,
+ * v5 - network-first for pages so existing installs pick up UI changes,
  * stale-while-revalidate for the app shell, and runtime caching for the
  * self-hosted PDF libraries. The tool's processing stays entirely local.
  */
-const CACHE_VERSION = 'u200kb-v4';
+const CACHE_VERSION = 'u200kb-v5';
 const CORE = [
   '/',
   '/index.html',

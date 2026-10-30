@@ -527,6 +527,15 @@ await check('failing analytics never breaks compression', async () => {
   equal(downloadName(page), 'ok-under200kb.jpg', 'name still correct');
 });
 
+await check('the dashboard keeps the repair action out of the way until it is needed', async () => {
+  const dash = fs.readFileSync(path.join(root, 'dashboard.html'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'dashboard.js'), 'utf8');
+  expect(/id="repair"[^>]*hidden/.test(dash), 'repair button starts hidden');
+  expect(/id="sendTest"/.test(dash), 'test event button present');
+  expect(/el\.repair\.hidden = !\(failure && failure\.reason\)/.test(source), 'repair only appears after a rejected write');
+  expect(/window\.confirm/.test(source), 'repair asks before deleting anything');
+});
+
 console.log('ui: ' + passed + ' checks passed' + (failures.length ? ', ' + failures.length + ' failed' : ''));
 if (failures.length) {
   console.error(failures.map((f) => ' ✗ ' + f).join('\n'));

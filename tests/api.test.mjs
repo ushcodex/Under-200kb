@@ -108,6 +108,9 @@ function createStore() {
 
 const store = createStore();
 let commandCount = 0;
+// Lets a test make one command inside a batch fail the way Upstash does:
+// HTTP 200, with a per-command error entry instead of a result.
+let rejectCommand = null;
 
 const server = http.createServer((req, res) => {
   const chunks = [];
@@ -120,7 +123,13 @@ const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json');
     try {
       if (req.url === '/pipeline') {
-        res.end(JSON.stringify(body.map((args) => ({ result: store.execute(args) }))));
+        res.end(JSON.stringify(body.map((args) => {
+          const name = String(args[0] || '').toUpperCase();
+          if (rejectCommand && name === rejectCommand) {
+            return { error: 'WRONGTYPE Operation against a key holding the wrong kind of value' };
+          }
+          return { result: store.execute(args) };
+        })));
       } else {
         res.end(JSON.stringify({ result: store.execute(body) }));
       }
@@ -145,12 +154,13 @@ const stats = require(path.join(root, 'api/stats.js'));
 const gsc = require(path.join(root, 'api/gsc.js'));
 const health = require(path.join(root, 'api/health.js'));
 
-function mockReq({ method = 'POST', headers = {}, body = undefined, query = {} } = {}) {
+function mockReq({ method = 'POST', headers = {}, body = undefined, query = {}, url = '/api/collect' } = {}) {
   return {
     method,
     headers,
     body: body === undefined ? JSON.stringify({}) : (typeof body === 'string' ? body : JSON.stringify(body)),
     query,
+    url,
     socket: { remoteAddress: '203.0.113.42' }
   };
 }
@@ -244,6 +254,65 @@ await check('every accepted event leaves a receiver receipt', async () => {
   // A ping must not inflate visits.
   const visitField = store.hashes.get('u200kb:v1:day:' + today).get('pv');
   equal(Number(visitField), 1, 'ping must not count as a visit');
+});
+
+await check('the probe form answers with what happened to the request', async () => {
+  const res = await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'ping' }, url: '/api/collect?probe=1' }));
+  equal(res.status, 200, 'probe status');
+  const body = res.json();
+  equal(body.recorded, true, 'recorded');
+  equal(body.event, 'ping', 'event echoed');
+  expect(body.at, 'timestamp');
+  equal(res.headers['content-type'], 'application/json; charset=utf-8', 'json reply');
+});
+
+await check('the probe names a privacy signal instead of guessing', async () => {
+  const before = commandCount;
+  const res = await run(collect, mockReq({
+    headers: { 'user-agent': UA, 'sec-gpc': '1' },
+    body: { e: 'ping' },
+    url: '/api/collect?probe=1'
+  }));
+  const body = res.json();
+  equal(body.recorded, false, 'not recorded');
+  equal(body.dropped, 'privacy-signal', 'reason');
+  equal(body.signal, 'gpc', 'which signal');
+  equal(commandCount, before, 'no commands for an opted-out request');
+});
+
+await check('the probe names a malformed event', async () => {
+  const res = await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'nope' }, url: '/api/collect?probe=1' }));
+  equal(res.json().dropped, 'event', 'reason');
+});
+
+await check('a normal beacon still returns an empty 204', async () => {
+  const res = await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'ping' } }));
+  equal(res.status, 204, 'status');
+  equal(res.body, '', 'no body');
+});
+
+await check('a command rejected inside the batch is reported, not swallowed', async () => {
+  const res = await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'view' }, url: '/api/collect?probe=1' }));
+  equal(res.json().recorded, true, 'baseline recorded');
+  rejectCommand = 'PFADD';
+  const bad = await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'view' }, url: '/api/collect?probe=1' }));
+  rejectCommand = null;
+  const body = bad.json();
+  equal(body.recorded, true, 'the receipt still lands after a counter is refused');
+  equal(body.counters, false, 'counters flagged');
+  equal(body.reason, 'wrong-type', 'reason');
+  equal(body.command, 'PFADD', 'failing command named');
+  const host = 'u200kb:v1';
+  const note = store.hashes.get(host + ':health:lastfail');
+  expect(note && /WRONGTYPE/.test(note.get('error')), 'failure note stored for the dashboard');
+});
+
+await check('a normal beacon still returns an empty 204 when a counter is refused', async () => {
+  rejectCommand = 'PFADD';
+  const res = await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'view' } }));
+  rejectCommand = null;
+  equal(res.status, 204, 'status');
+  equal(res.body, '', 'no body');
 });
 
 await check('unknown events and junk payloads are ignored', async () => {
@@ -385,6 +454,18 @@ await check('health reports a working store without exposing secrets', async () 
   expect(!JSON.stringify(body).includes(base), 'endpoint leaked');
 });
 
+await check('health can be asked for a fresh read after a test event', async () => {
+  health.resetCache();
+  await run(health, mockReq({ method: 'GET', headers: {} }));
+  await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'ping' } }));
+  const stale = await run(health, mockReq({ method: 'GET', headers: {} }));
+  expect(stale.json().receiver.received, 'receipt read back');
+  await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'ping' } }));
+  const fresh = await run(health, mockReq({ method: 'GET', headers: {}, url: '/api/health?fresh=1' }));
+  equal(fresh.status, 200, 'status');
+  expect(fresh.json().receiver.received, 'fresh read still sees the receipt');
+});
+
 await check('health explains a bad configuration', async () => {
   health.resetCache();
   const savedUrl = process.env.U200_ANALYTICS_REDIS_REST_URL;
@@ -421,6 +502,46 @@ await check('health gives signed-in users counters and env flags', async () => {
   equal(body.env.password, true, 'password configured');
   equal(body.env.secret, true, 'secret configured');
   expect(body.counters.daysTracked >= 1, 'days tracked');
+  // The earlier refused PFADD left a note; only a signed-in reader sees it.
+  expect(body.lastFailure && body.lastFailure.reason === 'wrong-type', 'last failure reported');
+  equal(body.lastFailure.command, 'PFADD', 'failing command');
+  expect(/uv:/.test(body.lastFailure.key || ''), 'key inside our namespace');
+});
+
+await check('repair deletes only the broken key, and only for a signed-in reader', async () => {
+  // A fresh failure note to repair.
+  const note = store.hashes.get('u200kb:v1:health:lastfail');
+  expect(note, 'failure note from the earlier batch');
+  const brokenKey = String(note.get('key'));
+  store.strings.set(brokenKey, 'wrong type stand-in');
+
+  const anonymous = await run(health, mockReq({ method: 'POST', headers: {}, body: { action: 'repair' } }));
+  equal(anonymous.status, 401, 'anonymous repair');
+  expect(!store.hashes.get('u200kb:v1:health:lastfail') || store.hashes.get('u200kb:v1:health:lastfail').has('key'), 'nothing deleted');
+
+  const unknown = await run(health, mockReq({ method: 'POST', headers: { cookie: sessionCookie }, body: { action: 'wipe' } }));
+  equal(unknown.status, 400, 'unknown action');
+
+  const done = await run(health, mockReq({ method: 'POST', headers: { cookie: sessionCookie }, body: { action: 'repair' } }));
+  equal(done.status, 200, 'status');
+  equal(done.json().removed, brokenKey, 'removed key');
+  expect(!store.strings.has(brokenKey), 'broken key deleted');
+  expect(!store.hashes.get('u200kb:v1:health:lastfail'), 'note cleared');
+  expect(store.hashes.has('u200kb:v1:rx'), 'other counters untouched');
+});
+
+await check('repair refuses to touch anything outside the namespace', async () => {
+  store.hashes.set('u200kb:v1:health:lastfail', new Map([['key', 'ush:analytics:visits']]));
+  const res = await run(health, mockReq({ method: 'POST', headers: { cookie: sessionCookie }, body: { action: 'repair' } }));
+  equal(res.status, 400, 'refused');
+  expect(store.hashes.get('u200kb:v1:health:lastfail').has('key'), 'note left for a human');
+  store.hashes.delete('u200kb:v1:health:lastfail');
+});
+
+await check('health keeps the last failure out of the public payload', async () => {
+  health.resetCache();
+  const res = await run(health, mockReq({ method: 'GET', headers: {} }));
+  equal(res.json().lastFailure, undefined, 'not public');
 });
 
 /* ---------------- Search Console ---------------- */
