@@ -11,10 +11,12 @@
 const redis = require('./_lib/redis');
 const analytics = require('./_lib/analytics');
 
-const EVENTS = new Set(['view', 'file_selected', 'compress', 'download']);
+const EVENTS = new Set(['view', 'file_selected', 'compress', 'download', 'ping']);
 const DIRECTIONS = new Set(['image-jpg', 'image-pdf', 'pdf-jpg', 'pdf-pdf']);
 const BUCKETS = new Set(['<=50', '<=100', '<=200', '<=500', '>500']);
 const KINDS = new Set(['image', 'pdf']);
+
+const DEBUG = process.env.U200_DEBUG === '1';
 
 function log(message) {
   // One short line, no payload, no secrets. Shows up in Vercel logs.
@@ -68,7 +70,13 @@ module.exports = async function handler(req, res) {
   const now = new Date();
   const day = analytics.dayKey(now);
   const daily = redis.key('day', day);
+  const receiver = redis.key('rx');
   const commands = [];
+
+  // Every accepted call leaves one small receipt in our own namespace so the
+  // dashboard can prove the endpoint is being reached, without any visitor data.
+  commands.push(['HSET', receiver, 'at', String(now.getTime()), 'event', event]);
+  commands.push(['HINCRBY', daily, 'rx', '1']);
 
   try {
     if (event === 'view') {
@@ -106,6 +114,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (commands.length) await redis.pipeline(commands, 2000);
+    if (DEBUG) log('collect: recorded ' + event);
   } catch (e) {
     // The browser must never see this, but it has to be visible to us.
     log('collect: write failed (' + redis.describeError(e) + ')');

@@ -112,8 +112,7 @@
     privacyClose: $('privacyClose'),
     privacyCancel: $('privacyCancel'),
     privacySave: $('privacySave'),
-    privacySaved: $('privacySaved'),
-    privacyState: $('privacyState')
+    privacySaved: $('privacySaved')
   };
 
   var state = {
@@ -245,7 +244,7 @@
     announce('');
     if (el.dropzone) el.dropzone.classList.remove('has-file');
     if (el.dzTitle) el.dzTitle.textContent = 'Tap to choose a file';
-    if (el.dzHint) el.dzHint.textContent = 'JPG, PNG or one-page PDF';
+    if (el.dzHint) el.dzHint.textContent = 'Image or PDF';
     if (keepFocus && el.file) el.file.focus();
   }
 
@@ -253,7 +252,7 @@
     clearError();
     var kind = detectKind(file);
     if (!kind) {
-      showError('That file type isn’t supported. Choose a JPG, PNG, WebP or a single-page PDF.');
+      showError('That file type isn’t supported. Choose an image or a PDF.');
       state.file = null;
       if (el.file) el.file.value = '';
       return;
@@ -317,15 +316,16 @@
             var dataUrl = canvas.toDataURL('image/jpeg', 0.92);
             state.sourceUrl = dataUrl;
             if (el.thumb) el.thumb.src = dataUrl;
+            updateFormatHelp();
             setPreparing(false, pdf.numPages > 1
-              ? 'PDF ready. Only the first page is compressed and converted.'
+              ? 'PDF ready. This one has ' + pdf.numPages + ' pages, and only the first page is used.'
               : 'PDF ready. Choose a format and compress.');
             track('file_selected', { k: 'pdf' });
           });
         });
       }).catch(function () {
         setPreparing(false, '');
-        showError('We couldn’t read that PDF in this browser. Try another file, or use a single-page PDF.');
+        showError('We couldn’t read that PDF in this browser. Try another file.');
       });
     };
     reader.onerror = function () {
@@ -346,13 +346,17 @@
     }
     el.formatHelp.hidden = false;
     if (kind === 'image' && wantsPdf) {
-      el.formatHelp.textContent = 'Your image becomes a one-page PDF.';
+      el.formatHelp.textContent = 'Your image becomes a PDF.';
     } else if (kind === 'image') {
       el.formatHelp.textContent = 'Your image stays a JPG, only smaller.';
+    } else if (state.pdfPages > 1) {
+      el.formatHelp.textContent = wantsPdf
+        ? 'This PDF has ' + state.pdfPages + ' pages. Only the first page is kept.'
+        : 'This PDF has ' + state.pdfPages + ' pages. Only the first page becomes a JPG.';
     } else if (wantsPdf) {
-      el.formatHelp.textContent = 'Your PDF is rebuilt as a smaller one-page PDF.';
+      el.formatHelp.textContent = 'Your PDF is rebuilt, smaller.';
     } else {
-      el.formatHelp.textContent = 'Page one of your PDF becomes a JPG.';
+      el.formatHelp.textContent = 'Your PDF becomes a JPG.';
     }
   }
 
@@ -644,7 +648,7 @@
     el.share.addEventListener('click', function () {
       var data = {
         title: 'Under 200KB',
-        text: 'Compress images and one-page PDFs to fit a strict upload limit, on your device.',
+        text: 'Compress an image or PDF to fit a strict upload limit, on your device.',
         url: 'https://under200kb.ushcodex.tech/'
       };
       if (navigator.share) {
@@ -666,12 +670,6 @@
 
   function savedOptOut() {
     try { return typeof window.u200OptedOut === 'function' ? Boolean(window.u200OptedOut()) : false; } catch (e) { return false; }
-  }
-
-  function renderPrivacyState() {
-    if (el.privacyState) {
-      el.privacyState.textContent = savedOptOut() ? 'Anonymous counts off' : 'Anonymous counts on';
-    }
   }
 
   function openPrivacy() {
@@ -702,14 +700,12 @@
   function savePrivacy() {
     var optedOut = Boolean(el.optout && el.optout.checked);
     if (typeof window.u200SetOptOut === 'function') window.u200SetOptOut(optedOut);
-    renderPrivacyState();
     if (el.privacySaved) {
       el.privacySaved.textContent = optedOut
         ? 'Saved. Anonymous usage counts are off.'
         : 'Saved. Anonymous usage counts are on.';
       el.privacySaved.hidden = false;
     }
-    announce(optedOut ? 'Anonymous usage counts are off.' : 'Anonymous usage counts are on.');
   }
 
   if (el.privacyOpen) el.privacyOpen.addEventListener('click', openPrivacy);
@@ -718,8 +714,10 @@
     el.privacyDialog.addEventListener('click', function (event) {
       if (event.target === el.privacyDialog) closePrivacy();
     });
-    el.privacyDialog.addEventListener('close', renderPrivacyState);
-    el.privacyDialog.addEventListener('cancel', function () { renderPrivacyState(); });
+    el.privacyDialog.addEventListener('cancel', function () {
+      // Escape keeps any saved choice: reopen to change it.
+      if (el.optout) el.optout.checked = savedOptOut();
+    });
   }
   if (el.privacyCancel) {
     el.privacyCancel.addEventListener('click', function () {
@@ -729,7 +727,6 @@
     });
   }
   if (el.privacySave) el.privacySave.addEventListener('click', savePrivacy);
-  renderPrivacyState();
 
   syncPresets();
   updateFormatHelp();

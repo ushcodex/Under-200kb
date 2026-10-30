@@ -336,8 +336,8 @@ await check('a new service worker version replaces the old cache', async () => {
   const page = await newPage();
   await page.evaluate(() => navigator.serviceWorker.ready);
   const caches = await page.evaluate(() => window.caches.keys());
-  expect(caches.includes('u200kb-v3'), 'expected u200kb-v3 cache, saw ' + caches.join(','));
-  expect(!caches.includes('under200kb-v2'), 'old cache should be removed');
+  expect(caches.includes('u200kb-v4'), 'expected u200kb-v4 cache, saw ' + caches.join(','));
+  expect(!caches.some((key) => key.startsWith('under200kb-')), 'old cache should be removed');
   await page.close();
 });
 
@@ -390,6 +390,27 @@ await check('a real visit and compression are counted by the server', async () =
   await page.close();
 });
 
+await check('the dashboard proves the counter endpoint is reachable', async () => {
+  // A private context: earlier checks sign in over /api/stats and share cookies.
+  const context = await browser.createBrowserContext();
+  const page = await context.newPage();
+  await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
+  await page.setUserAgent(DESKTOP_UA);
+  await page.goto(BASE + '/dashboard', { waitUntil: 'networkidle2' });
+  await page.type('#password', DASHBOARD_PASSWORD);
+  await page.click('#loginButton');
+  await page.waitForFunction(() => document.getElementById('dashboard').hidden === false, { timeout: 15000 });
+  await page.waitForFunction(() => !document.getElementById('storageBox').hidden, { timeout: 10000 });
+  await page.click('#sendTest');
+  await page.waitForFunction(() => document.getElementById('testResult').hidden === false, { timeout: 15000 });
+  const result = await page.$eval('#testResult', (el) => ({ text: el.textContent, cls: el.className }));
+  expect(/received the test event/i.test(result.text), 'test event not confirmed: ' + result.text);
+  expect(/msg-ok/.test(result.cls), 'success styling');
+  const receiver = await page.$eval('#receiverLine', (el) => el.textContent);
+  expect(/Last counter write/.test(receiver), 'receiver line: ' + receiver);
+  await context.close();
+});
+
 await check('the privacy dialog opens, saves and closes from the UI', async () => {
   const page = await newPage({ viewport: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } });
   await page.click('#privacyOpen');
@@ -403,8 +424,11 @@ await check('the privacy dialog opens, saves and closes from the UI', async () =
   await page.screenshot({ path: path.join(tmp, 'privacy-dialog.png') });
   await page.click('#privacyClose');
   await page.waitForFunction(() => document.getElementById('privacyDialog').open === false, { timeout: 5000 });
-  const footer = await page.$eval('#privacyState', (el) => el.textContent);
-  expect(/off/.test(footer), 'footer state: ' + footer);
+  await page.waitForFunction(() => document.getElementById('privacyDialog').open === false, { timeout: 5000 });
+  const footer = await page.$eval('footer', (el) => el.textContent);
+  expect(!/Anonymous counts/.test(footer), 'no analytics state text in the footer: ' + footer);
+  const pageStatus = await page.$eval('#status', (el) => el.textContent);
+  expect(!/Anonymous/i.test(pageStatus), 'no analytics state text in the page status: ' + pageStatus);
   await page.close();
 });
 

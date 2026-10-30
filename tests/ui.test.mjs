@@ -161,8 +161,9 @@ await check('format choice is labelled with conversion directions', async () => 
   const { doc } = page;
   const jpg = doc.getElementById('fmtJpg').closest('label').textContent.replace(/\s+/g, ' ').trim();
   const pdf = doc.getElementById('fmtPdf').closest('label').textContent.replace(/\s+/g, ' ').trim();
-  expect(/JPG image/i.test(jpg) && /For a PDF/i.test(jpg) && /picture/i.test(jpg), 'JPG option should explain PDF to image: ' + jpg);
-  expect(/PDF document/i.test(pdf) && /For an image/i.test(pdf) && /PDF/i.test(pdf), 'PDF option should explain image to PDF: ' + pdf);
+  expect(/JPG image/i.test(jpg) && /picture/i.test(jpg), 'JPG option should say it produces a picture: ' + jpg);
+  expect(/PDF document/i.test(pdf) && /document/i.test(pdf), 'PDF option should say it produces a document: ' + pdf);
+  expect(!/page/i.test(jpg + pdf), 'the format list must not talk about pages: ' + jpg + pdf);
   // The destination line stays quiet until a file makes the direction concrete.
   equal(doc.getElementById('formatHelp').hidden, true, 'no redundant static sentence');
 });
@@ -180,7 +181,7 @@ await check('image selection previews the file and explains the destination', as
   expect(/stays a JPG/.test(doc.getElementById('formatHelp').textContent), 'destination hint: ' + doc.getElementById('formatHelp').textContent);
   doc.getElementById('fmtPdf').checked = true;
   doc.getElementById('fmtPdf').dispatchEvent(new window.Event('change', { bubbles: true }));
-  expect(/becomes a one-page PDF/.test(doc.getElementById('formatHelp').textContent), 'destination hint after switching');
+  expect(/becomes a PDF/.test(doc.getElementById('formatHelp').textContent), 'destination hint after switching');
 });
 
 await check('image → JPG produces a recognisable name and a download', async () => {
@@ -377,11 +378,12 @@ await check('privacy panel opens, saves and confirms', async () => {
   equal(doc.getElementById('privacySaved').hidden, false, 'confirmation shown');
   expect(/Saved\./.test(doc.getElementById('privacySaved').textContent), 'confirmation wording: ' + doc.getElementById('privacySaved').textContent);
   expect(/off/.test(doc.getElementById('privacySaved').textContent), 'confirmation states the outcome');
-  expect(/off/.test(doc.getElementById('privacyState').textContent), 'footer state updated');
 
   doc.getElementById('privacyClose').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
   await wait(10);
   equal(doc.getElementById('privacyDialog').open || doc.getElementById('privacyDialog').hasAttribute('open'), false, 'close button closes the dialog');
+  const status = doc.getElementById('status').textContent || '';
+  expect(!/Anonymous/i.test(status), 'no analytics state text left in the page status: ' + status);
 });
 
 await check('privacy cancel discards an unsaved change', async () => {
@@ -414,6 +416,51 @@ await check('privacy panel can be reopened and cleared for the next decision', a
   equal(doc.getElementById('privacySaved').hidden, true, 'confirmation resets for the next visit');
 });
 
+await check('supported file types are listed in the footer, not in the dropzone', async () => {
+  const page = buildPage();
+  const { doc } = page;
+  const hint = doc.getElementById('dzHint').textContent;
+  expect(/Image or PDF/i.test(hint), 'dropzone hint should be short: ' + hint);
+  expect(!/JPG|PNG|WebP/i.test(hint), 'the dropzone should not list formats: ' + hint);
+  const footer = doc.querySelector('footer').textContent.replace(/\s+/g, ' ');
+  expect(/JPG, PNG, WebP, GIF, BMP, AVIF and PDF/.test(footer), 'footer should list supported types: ' + footer);
+});
+
+await check('pages are only mentioned for multi-page PDFs', async () => {
+  const page = buildPage();
+  const { doc, window } = page;
+  const image = new window.File([new Uint8Array(2048)], 'photo.jpg', { type: 'image/jpeg' });
+  selectFile(page, image);
+  await wait(20);
+  const visibleCopy = [
+    doc.querySelector('.lede').textContent,
+    doc.getElementById('dzHint').textContent,
+    doc.getElementById('formatHelp').textContent,
+    [...doc.querySelectorAll('.format-desc')].map((el) => el.textContent).join(' '),
+    doc.querySelector('footer').textContent
+  ].join(' ');
+  expect(!/one-page|single-page|first page|page one/i.test(visibleCopy), 'no page talk for images: ' + visibleCopy);
+  expect(!/page/i.test(doc.getElementById('formatHelp').textContent), 'format help should not mention pages');
+
+  window.pdfjsLib = {
+    GlobalWorkerOptions: {},
+    getDocument: () => ({
+      promise: Promise.resolve({
+        numPages: 3,
+        getPage: () => Promise.resolve({
+          getViewport: () => ({ width: 600, height: 800 }),
+          render: () => ({ promise: Promise.resolve() })
+        })
+      })
+    })
+  };
+  const pdf = new window.File([new Uint8Array(1024)], 'scan.pdf', { type: 'application/pdf' });
+  selectFile(page, pdf);
+  await wait(120);
+  expect(/3 pages/.test(doc.getElementById('formatHelp').textContent), 'multi-page hint: ' + doc.getElementById('formatHelp').textContent);
+  expect(/Only the first page/.test(doc.getElementById('formatHelp').textContent), 'only the first page is used');
+});
+
 await check('page copy is tight and free of em dashes', async () => {
   const page = buildPage();
   const { doc } = page;
@@ -422,6 +469,8 @@ await check('page copy is tight and free of em dashes', async () => {
   expect(!text.includes('\u2013'), 'en dash found in body copy');
   expect(!/Ushcodex Technologies · Free tool/i.test(text), 'the eyebrow line should be gone');
   expect(!/Download name/i.test(text), 'the filename should not be printed beside the button');
+  expect(!/Anonymous counts/i.test(text), 'no analytics state text in the page body');
+  expect(!/one-page|single-page/i.test(text), 'no page-count wording in the page body');
   const words = text.split(' ').filter(Boolean).length;
   expect(words < 190, 'the page carries too much copy: ' + words + ' words');
   const downloadLabels = (text.match(/under200kb\./g) || []).length;
