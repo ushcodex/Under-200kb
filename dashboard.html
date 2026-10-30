@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Under 200KB — private analytics</title>
+<title>Under 200KB | private analytics</title>
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="theme-color" content="#f7f6f2">
 <meta name="referrer" content="no-referrer">
@@ -20,7 +20,7 @@
 <header class="topbar">
   <div class="wrap topbar-inner">
     <span class="brand">Under<b>200KB</b> <span class="dash-tag">private</span></span>
-    <a class="ush-link" href="https://ushcodex.tech/" aria-label="Ushcodex Technologies — main website">
+    <a class="ush-link" href="https://ushcodex.tech/" aria-label="Ushcodex Technologies website">
       <img src="/ushcodex-logo.svg" alt="Ushcodex Technologies" width="140" height="45" decoding="async">
     </a>
   </div>
@@ -57,6 +57,18 @@
     </div>
 
     <p class="help" id="rangeNote"></p>
+
+    <section class="storage" id="storageBox" aria-labelledby="storageHeading" hidden>
+      <h2 id="storageHeading" class="sr-only">Analytics storage</h2>
+      <p class="storage-line">
+        <span class="badge" id="storageBadge">Checking</span>
+        <span id="storageMessage">Checking the analytics database.</span>
+      </p>
+      <div class="dash-bar-actions">
+        <button type="button" class="btn-quiet" id="recheck">Check again</button>
+      </div>
+    </section>
+
     <p class="msg msg-error" id="dashError" role="alert" hidden></p>
 
     <div class="kpis" id="kpis"></div>

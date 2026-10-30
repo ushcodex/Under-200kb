@@ -114,6 +114,29 @@ check('theme colour matches the paper background', () => {
   expect(/<meta name="theme-color" content="#f7f6f2">/.test(html), 'theme-color');
 });
 
+check('copy stays plain and free of em dashes', () => {
+  const files = ['index.html', 'dashboard.html', 'styles.css', 'app.js', 'analytics.js', 'dashboard.js'];
+  const offenders = [];
+  files.forEach((name) => {
+    const text = fs.readFileSync(path.join(root, name), 'utf8');
+    if (/[\u2013\u2014]/.test(text)) offenders.push(name);
+  });
+  expect(offenders.length === 0, 'em or en dash found in ' + offenders.join(', '));
+});
+
+check('the privacy control has a close button and a save confirmation', () => {
+  expect(/id="privacyOpen"/.test(html), 'opener button');
+  expect(/id="privacyClose"[^>]*aria-label="Close privacy settings"/.test(html), 'close button with a label');
+  expect(/id="privacyDialog"/.test(html), 'dialog element');
+  expect(/id="privacySaved"[^>]*role="status"/.test(html), 'confirmation live region');
+  expect(/id="privacyCancel"/.test(html) && /id="privacySave"/.test(html), 'save and cancel');
+});
+
+check('the download name appears once, in the button', () => {
+  expect(!/out-name/.test(html), 'filenames should not be printed beside the button');
+  expect(/<span id="downloadLabel">Download<\/span>/.test(html), 'button label');
+});
+
 check('the page declares a light colour scheme and a viewport', () => {
   expect(/name="color-scheme" content="light"/.test(html), 'color-scheme');
   expect(/name="viewport"/.test(html), 'viewport');

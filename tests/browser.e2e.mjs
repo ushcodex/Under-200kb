@@ -15,10 +15,21 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const puppeteer = require('/tmp/deps/node_modules/puppeteer-core');
-const sharp = require('/tmp/deps/node_modules/sharp');
+function optional(name) {
+  for (const base of [process.env.E2E_DEPS, '/tmp/deps/node_modules', '']) {
+    try { return base ? require(base + '/' + name) : require(name); } catch (e) { /* keep looking */ }
+  }
+  return null;
+}
+const puppeteer = optional('puppeteer-core');
+if (!puppeteer) {
+  console.error('puppeteer-core is required for the browser suite (set E2E_DEPS)');
+  process.exit(2);
+}
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:3000';
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'preview-password';
+const DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 const CHROME = process.env.CHROME_PATH;
 if (!CHROME) {
   console.error('Set CHROME_PATH to a Chrome/Chromium binary');
@@ -47,6 +58,7 @@ const consoleErrors = [];
 async function newPage(options = {}) {
   const page = await browser.newPage();
   await page.setViewport(options.viewport || { width: 1280, height: 900, deviceScaleFactor: 1 });
+  await page.setUserAgent(options.userAgent || DESKTOP_UA);
   page.on('console', (message) => {
     if (message.type() === 'error') consoleErrors.push(message.text());
   });
@@ -338,6 +350,7 @@ await check('analytics requests stay on the same origin and never include file d
   const file = await copyWithName('photo-large.jpg', 'private-name.jpg');
   await compress(page, { file, limit: 200, format: 'jpg' });
   await new Promise((resolve) => setTimeout(resolve, 1500));
+  expect(requests.length > 0, 'no analytics beacon was sent');
   requests.forEach((body) => {
     expect(!body.includes('private-name'), 'file name leaked: ' + body);
     expect(!body.includes('image/jpeg;base64'), 'file contents leaked');
@@ -345,14 +358,66 @@ await check('analytics requests stay on the same origin and never include file d
   await page.close();
 });
 
+await check('a real visit and compression are counted by the server', async () => {
+  const page = await newPage();
+  const readTotals = () => page.evaluate(async (password) => {
+    const response = await fetch('/api/stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: password, range: '7' })
+    });
+    if (!response.ok) return null;
+    const body = await response.json();
+    return body.ok ? { totals: body.totals, directions: body.directions || [] } : null;
+  }, DASHBOARD_PASSWORD);
+  const before = await readTotals();
+
+  // A fresh page load should book a visit.
+  const visitor = await newPage();
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+  const afterVisit = await readTotals();
+  await visitor.close();
+  expect(before && afterVisit, 'dashboard payload unavailable');
+  expect(afterVisit.totals.visits > before.totals.visits, 'visits did not increase: ' + before.totals.visits + ' -> ' + afterVisit.totals.visits);
+
+  // A compression should book an action.
+  const file = await copyWithName('photo-large.jpg', 'counted.jpg');
+  await compress(page, { file, limit: 200, format: 'jpg' });
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const afterWork = await readTotals();
+  expect(afterWork.totals.ok > afterVisit.totals.ok, 'compressions did not increase: ' + afterVisit.totals.ok + ' -> ' + afterWork.totals.ok);
+  expect(afterWork.directions.some((row) => row.name === 'image-jpg'), 'direction not recorded');
+  await page.close();
+});
+
+await check('the privacy dialog opens, saves and closes from the UI', async () => {
+  const page = await newPage({ viewport: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } });
+  await page.click('#privacyOpen');
+  await page.waitForFunction(() => document.getElementById('privacyDialog').open === true, { timeout: 5000 });
+  await page.click('#optout');
+  await page.click('#privacySave');
+  const saved = await page.$eval('#privacySaved', (el) => ({ hidden: el.hidden, text: el.textContent }));
+  expect(!saved.hidden && /Saved/.test(saved.text), 'confirmation missing: ' + JSON.stringify(saved));
+  const stored = await page.evaluate(() => localStorage.getItem('u200kb-analytics-optout'));
+  equal(stored, '1', 'preference stored');
+  await page.screenshot({ path: path.join(tmp, 'privacy-dialog.png') });
+  await page.click('#privacyClose');
+  await page.waitForFunction(() => document.getElementById('privacyDialog').open === false, { timeout: 5000 });
+  const footer = await page.$eval('#privacyState', (el) => el.textContent);
+  expect(/off/.test(footer), 'footer state: ' + footer);
+  await page.close();
+});
+
 await check('dashboard blocks anonymous readers', async () => {
-  const page = await browser.newPage();
+  const context = await browser.createBrowserContext();
+  const page = await context.newPage();
   const response = await page.goto(BASE + '/api/stats?range=30');
   equal(response.status(), 401, 'status');
   const robots = await page.goto(BASE + '/dashboard');
   const meta = await page.$eval('meta[name="robots"]', (el) => el.content);
   expect(/noindex/.test(meta), 'dashboard should be noindex');
   await page.close();
+  await context.close();
 });
 
 await check('no console errors anywhere', async () => {

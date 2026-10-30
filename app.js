@@ -1,4 +1,4 @@
-/* Under 200KB — client-side compressor for Ushcodex Technologies
+/* Under 200KB: client-side compressor for Ushcodex Technologies
  * Files never leave the device: everything below runs on canvas in this tab.
  * The compression loop is intentionally the same as the original tool:
  * cap the long edge at 2500px, then step JPEG quality down from 0.9 to 0.1.
@@ -101,13 +101,19 @@
     outSize: $('outSize'),
     outOriginal: $('outOriginal'),
     outLimit: $('outLimit'),
-    outName: $('outName'),
     download: $('download'),
     downloadLabel: $('downloadLabel'),
     resultWarn: $('resultWarn'),
     again: $('again'),
     share: $('share'),
-    optout: $('optout')
+    optout: $('optout'),
+    privacyOpen: $('privacyOpen'),
+    privacyDialog: $('privacyDialog'),
+    privacyClose: $('privacyClose'),
+    privacyCancel: $('privacyCancel'),
+    privacySave: $('privacySave'),
+    privacySaved: $('privacySaved'),
+    privacyState: $('privacyState')
   };
 
   var state = {
@@ -157,7 +163,7 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * Lazy vendor loading — only fetch the PDF libraries when they are used
+   * Lazy vendor loading: only fetch the PDF libraries when they are used
    * ------------------------------------------------------------------ */
 
   var scriptPromises = {};
@@ -220,12 +226,14 @@
     state.preparing = false;
     if (el.go) {
       el.go.disabled = false;
-      el.goLabel.textContent = 'Compress & prepare download';
+      el.goLabel.textContent = 'Compress file';
     }
     if (el.download) {
       el.download.setAttribute('aria-disabled', 'true');
       el.download.removeAttribute('href');
+      el.download.removeAttribute('aria-label');
     }
+    if (el.downloadLabel) el.downloadLabel.textContent = 'Download';
     if (el.thumb) el.thumb.removeAttribute('src');
     if (el.resultThumb) {
       el.resultThumb.hidden = true;
@@ -237,7 +245,7 @@
     announce('');
     if (el.dropzone) el.dropzone.classList.remove('has-file');
     if (el.dzTitle) el.dzTitle.textContent = 'Tap to choose a file';
-    if (el.dzHint) el.dzHint.textContent = 'JPG, PNG or a single-page PDF — or drag it here';
+    if (el.dzHint) el.dzHint.textContent = 'JPG, PNG or one-page PDF';
     if (keepFocus && el.file) el.file.focus();
   }
 
@@ -262,8 +270,8 @@
     if (el.fileName) el.fileName.textContent = file.name;
     if (el.fileSize) el.fileSize.textContent = formatKB(file.size) + ' · ' + (kind === 'pdf' ? 'PDF document' : 'Image');
     if (el.dropzone) el.dropzone.classList.add('has-file');
-    if (el.dzTitle) el.dzTitle.textContent = 'Replace file';
-    if (el.dzHint) el.dzHint.textContent = 'Tap, or drag another file here';
+    if (el.dzTitle) el.dzTitle.textContent = 'Choose another file';
+    if (el.dzHint) el.dzHint.textContent = 'Drag it here or tap to browse';
 
     if (kind === 'pdf') {
       el.fmtPdf.checked = true;
@@ -279,7 +287,7 @@
       state.sourceUrl = url;
       state.objectUrls.push(url);
       if (el.thumb) el.thumb.src = url;
-      announce('Image selected. Set a limit and choose a format.');
+      announce('Image chosen. Set a limit and a format.');
       track('file_selected', { k: 'image' });
     }
   }
@@ -289,7 +297,7 @@
     state.preparing = preparing;
     if (!el.go) return;
     el.go.disabled = preparing || state.busy;
-    el.goLabel.textContent = preparing ? 'Preparing preview…' : (state.busy ? 'Compressing…' : 'Compress & prepare download');
+    el.goLabel.textContent = preparing ? 'Preparing preview…' : (state.busy ? 'Compressing…' : 'Compress file');
     if (message) announce(message);
   }
 
@@ -332,15 +340,19 @@
     var kind = state.kind;
     var wantsPdf = el.fmtPdf.checked;
     if (!kind) {
-      el.formatHelp.textContent = 'Pick JPG to turn a one-page PDF into an image, or PDF to wrap an image as a document.';
-    } else if (kind === 'image' && wantsPdf) {
-      el.formatHelp.textContent = 'Destination: PDF — your image becomes a one-page PDF.';
+      el.formatHelp.textContent = '';
+      el.formatHelp.hidden = true;
+      return;
+    }
+    el.formatHelp.hidden = false;
+    if (kind === 'image' && wantsPdf) {
+      el.formatHelp.textContent = 'Your image becomes a one-page PDF.';
     } else if (kind === 'image') {
-      el.formatHelp.textContent = 'Destination: JPG — your image is compressed as a JPG picture.';
+      el.formatHelp.textContent = 'Your image stays a JPG, only smaller.';
     } else if (wantsPdf) {
-      el.formatHelp.textContent = 'Destination: PDF — your PDF is rebuilt as a smaller one-page PDF.';
+      el.formatHelp.textContent = 'Your PDF is rebuilt as a smaller one-page PDF.';
     } else {
-      el.formatHelp.textContent = 'Destination: JPG — page 1 of your PDF becomes an image.';
+      el.formatHelp.textContent = 'Page one of your PDF becomes a JPG.';
     }
   }
 
@@ -426,13 +438,13 @@
     state.busy = busy;
     if (!el.go) return;
     el.go.disabled = busy || state.preparing;
-    el.goLabel.textContent = busy ? 'Compressing…' : (state.preparing ? 'Preparing preview…' : 'Compress & prepare download');
+    el.goLabel.textContent = busy ? 'Compressing…' : (state.preparing ? 'Preparing preview…' : 'Compress file');
   }
 
   function compress() {
     if (state.busy) return;
     if (!state.file) {
-      showError('Choose a file first — then set a limit and compress.');
+      showError('Choose a file first, then set a limit and compress.');
       if (el.file) el.file.focus();
       return;
     }
@@ -517,11 +529,11 @@
     el.outSize.textContent = formatKB(out.blob.size);
     el.outOriginal.textContent = formatKB(state.file.size);
     el.outLimit.textContent = sizeKb + ' KB';
-    el.outName.textContent = name;
     el.download.href = url;
     el.download.setAttribute('download', name);
     el.download.removeAttribute('aria-disabled');
     el.downloadLabel.textContent = 'Download ' + name;
+    el.download.setAttribute('aria-label', 'Download ' + name);
 
     if (el.resultThumb) {
       var previewSrc = wantsPdf ? state.sourceUrl : url;
@@ -542,7 +554,7 @@
     }
 
     el.result.hidden = false;
-    announce('Done. ' + formatKB(out.blob.size) + ' ' + (wantsPdf ? 'PDF' : 'JPG') + ', saved as ' + name + '. Ready to download.');
+    announce('Done. ' + formatKB(out.blob.size) + ' ' + (wantsPdf ? 'PDF' : 'JPG') + ', ready to download as ' + name + '.');
     el.resultHeading.textContent = 'Your file is ready';
     if (el.result && el.result.scrollIntoView) {
       try { el.result.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* ignore */ }
@@ -632,7 +644,7 @@
     el.share.addEventListener('click', function () {
       var data = {
         title: 'Under 200KB',
-        text: 'Compress images and single-page PDFs to fit a strict upload limit — on your device.',
+        text: 'Compress images and one-page PDFs to fit a strict upload limit, on your device.',
         url: 'https://under200kb.ushcodex.tech/'
       };
       if (navigator.share) {
@@ -652,15 +664,72 @@
     });
   }
 
-  if (el.optout) {
-    try {
-      el.optout.checked = window.u200OptedOut ? window.u200OptedOut() : false;
-    } catch (e) { /* ignore */ }
-    el.optout.addEventListener('change', function () {
-      if (typeof window.u200SetOptOut === 'function') window.u200SetOptOut(el.optout.checked);
-      announce(el.optout.checked ? 'Anonymous usage counts are off.' : 'Anonymous usage counts are on.');
+  function savedOptOut() {
+    try { return typeof window.u200OptedOut === 'function' ? Boolean(window.u200OptedOut()) : false; } catch (e) { return false; }
+  }
+
+  function renderPrivacyState() {
+    if (el.privacyState) {
+      el.privacyState.textContent = savedOptOut() ? 'Anonymous counts off' : 'Anonymous counts on';
+    }
+  }
+
+  function openPrivacy() {
+    if (!el.privacyDialog) return;
+    if (el.optout) el.optout.checked = savedOptOut();
+    if (el.privacySaved) {
+      el.privacySaved.hidden = true;
+      el.privacySaved.textContent = '';
+    }
+    if (typeof el.privacyDialog.showModal === 'function') {
+      try { el.privacyDialog.showModal(); } catch (e) { el.privacyDialog.setAttribute('open', ''); }
+    } else {
+      el.privacyDialog.setAttribute('open', '');
+    }
+    if (el.privacyClose) el.privacyClose.focus();
+  }
+
+  function closePrivacy(returnFocus) {
+    if (!el.privacyDialog) return;
+    if (typeof el.privacyDialog.close === 'function' && el.privacyDialog.open) {
+      el.privacyDialog.close();
+    } else {
+      el.privacyDialog.removeAttribute('open');
+    }
+    if (returnFocus !== false && el.privacyOpen) el.privacyOpen.focus();
+  }
+
+  function savePrivacy() {
+    var optedOut = Boolean(el.optout && el.optout.checked);
+    if (typeof window.u200SetOptOut === 'function') window.u200SetOptOut(optedOut);
+    renderPrivacyState();
+    if (el.privacySaved) {
+      el.privacySaved.textContent = optedOut
+        ? 'Saved. Anonymous usage counts are off.'
+        : 'Saved. Anonymous usage counts are on.';
+      el.privacySaved.hidden = false;
+    }
+    announce(optedOut ? 'Anonymous usage counts are off.' : 'Anonymous usage counts are on.');
+  }
+
+  if (el.privacyOpen) el.privacyOpen.addEventListener('click', openPrivacy);
+  if (el.privacyClose) el.privacyClose.addEventListener('click', function () { closePrivacy(); });
+  if (el.privacyDialog) {
+    el.privacyDialog.addEventListener('click', function (event) {
+      if (event.target === el.privacyDialog) closePrivacy();
+    });
+    el.privacyDialog.addEventListener('close', renderPrivacyState);
+    el.privacyDialog.addEventListener('cancel', function () { renderPrivacyState(); });
+  }
+  if (el.privacyCancel) {
+    el.privacyCancel.addEventListener('click', function () {
+      // Cancel discards an unsaved change.
+      if (el.optout) el.optout.checked = savedOptOut();
+      closePrivacy();
     });
   }
+  if (el.privacySave) el.privacySave.addEventListener('click', savePrivacy);
+  renderPrivacyState();
 
   syncPresets();
   updateFormatHelp();

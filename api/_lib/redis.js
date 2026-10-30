@@ -11,8 +11,7 @@
 const PREFIX = 'u200kb:v1:';
 
 function endpoint() {
-  const base = (process.env.U200_ANALYTICS_REDIS_REST_URL || '').trim().replace(/\/+$/, '');
-  return base;
+  return (process.env.U200_ANALYTICS_REDIS_REST_URL || '').trim().replace(/\/+$/, '');
 }
 
 function token() {
@@ -21,6 +20,17 @@ function token() {
 
 function configured() {
   return Boolean(endpoint() && token());
+}
+
+/** Why the configuration cannot work, or null when it looks usable. */
+function configProblem() {
+  if (!endpoint() && !token()) return 'not-configured';
+  if (!endpoint()) return 'missing-url';
+  if (!token()) return 'missing-token';
+  if (!/^https?:\/\/[^\s/]+/i.test(endpoint())) return 'bad-url';
+  if (/^redis(s)?:\/\//i.test(endpoint())) return 'bad-url';
+  if (/\s/.test(token())) return 'bad-token';
+  return null;
 }
 
 async function call(path, body, timeoutMs) {
@@ -37,7 +47,11 @@ async function call(path, body, timeoutMs) {
       signal: controller.signal,
       cache: 'no-store'
     });
-    if (!response.ok) throw new Error('redis ' + response.status);
+    if (!response.ok) {
+      const error = new Error('redis http ' + response.status);
+      error.status = response.status;
+      throw error;
+    }
     return await response.json();
   } finally {
     clearTimeout(timer);
@@ -65,4 +79,40 @@ function key(...parts) {
   return PREFIX + parts.join(':');
 }
 
-module.exports = { PREFIX, key, configured, command, pipeline };
+/** Short, secret-free reason used in logs and in the dashboard status strip. */
+function describeError(error) {
+  if (!error) return 'unknown';
+  if (error.name === 'AbortError') return 'timeout';
+  const status = error.status;
+  if (status === 401 || status === 403) return 'rejected-credentials';
+  if (status === 404) return 'wrong-endpoint';
+  if (status === 429) return 'rate-limited';
+  if (status && status >= 500) return 'storage-unavailable';
+  const message = String(error.message || '');
+  if (/fetch failed|ENOTFOUND|EAI_AGAIN|network|Invalid URL/i.test(message)) return 'unreachable';
+  if (/WRONGPASS|NOPERM|invalid.*(token|password)/i.test(message)) return 'rejected-credentials';
+  return 'error';
+}
+
+/**
+ * Verify the configuration end to end: read, write and delete a probe key that
+ * stays inside this project's namespace. Safe to call from the dashboard.
+ */
+async function diagnose() {
+  const problem = configProblem();
+  if (problem) return { ok: false, reason: problem };
+  const probe = key('health', 'probe');
+  try {
+    const pong = await command(['PING'], 2500);
+    if (String(pong).toUpperCase() !== 'PONG') return { ok: false, reason: 'unexpected-response' };
+    await command(['SET', probe, String(Date.now()), 'EX', '60'], 2500);
+    const value = await command(['GET', probe], 2500);
+    await command(['DEL', probe], 2500);
+    if (!value) return { ok: false, reason: 'write-not-persisted' };
+    return { ok: true, reason: 'ok' };
+  } catch (error) {
+    return { ok: false, reason: describeError(error) };
+  }
+}
+
+module.exports = { PREFIX, key, configured, configProblem, command, pipeline, describeError, diagnose };

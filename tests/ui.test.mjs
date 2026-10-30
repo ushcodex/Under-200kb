@@ -114,6 +114,10 @@ function buildPage(options = {}) {
   return { dom, window, doc, events, realTrack, qualitySeen: () => qualitySeen };
 }
 
+function downloadName(page) {
+  return page.doc.getElementById('download').getAttribute('download');
+}
+
 function selectFile(page, file) {
   const input = page.doc.getElementById('file');
   Object.defineProperty(input, 'files', { value: [file], configurable: true });
@@ -157,9 +161,10 @@ await check('format choice is labelled with conversion directions', async () => 
   const { doc } = page;
   const jpg = doc.getElementById('fmtJpg').closest('label').textContent.replace(/\s+/g, ' ').trim();
   const pdf = doc.getElementById('fmtPdf').closest('label').textContent.replace(/\s+/g, ' ').trim();
-  expect(/JPG image/i.test(jpg) && /PDF.*image/i.test(jpg), 'JPG option should explain PDF → image: ' + jpg);
-  expect(/PDF document/i.test(pdf) && /image.*PDF/i.test(pdf), 'PDF option should explain image → PDF: ' + pdf);
-  expect(doc.getElementById('formatHelp').textContent.length > 20, 'missing explanation beside the control');
+  expect(/JPG image/i.test(jpg) && /For a PDF/i.test(jpg) && /picture/i.test(jpg), 'JPG option should explain PDF to image: ' + jpg);
+  expect(/PDF document/i.test(pdf) && /For an image/i.test(pdf) && /PDF/i.test(pdf), 'PDF option should explain image to PDF: ' + pdf);
+  // The destination line stays quiet until a file makes the direction concrete.
+  equal(doc.getElementById('formatHelp').hidden, true, 'no redundant static sentence');
 });
 
 await check('image selection previews the file and explains the destination', async () => {
@@ -172,10 +177,10 @@ await check('image selection previews the file and explains the destination', as
   equal(doc.getElementById('fileName').textContent, 'my.passport.photo.jpg', 'file name');
   expect(/800 KB/.test(doc.getElementById('fileSize').textContent), 'size shown: ' + doc.getElementById('fileSize').textContent);
   expect(doc.getElementById('fmtJpg').checked, 'images should default to JPG output');
-  expect(/Destination: JPG/.test(doc.getElementById('formatHelp').textContent), 'destination hint');
+  expect(/stays a JPG/.test(doc.getElementById('formatHelp').textContent), 'destination hint: ' + doc.getElementById('formatHelp').textContent);
   doc.getElementById('fmtPdf').checked = true;
   doc.getElementById('fmtPdf').dispatchEvent(new window.Event('change', { bubbles: true }));
-  expect(/Destination: PDF/.test(doc.getElementById('formatHelp').textContent), 'destination hint after switching');
+  expect(/becomes a one-page PDF/.test(doc.getElementById('formatHelp').textContent), 'destination hint after switching');
 });
 
 await check('image → JPG produces a recognisable name and a download', async () => {
@@ -189,9 +194,10 @@ await check('image → JPG produces a recognisable name and a download', async (
   doc.getElementById('toolForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(120);
 
-  const name = doc.getElementById('outName').textContent;
+  const name = downloadName(page);
   equal(name, 'my.passport.photo-under200kb.jpg', 'download name');
-  equal(doc.getElementById('download').getAttribute('download'), name, 'download attribute');
+  equal(doc.getElementById('downloadLabel').textContent, 'Download ' + name, 'name appears in the button');
+  equal(doc.querySelectorAll('.out-name').length, 0, 'the name must not be printed twice');
   expect(/^blob:/.test(doc.getElementById('download').getAttribute('href') || ''), 'download href');
   equal(doc.getElementById('result').hidden, false, 'result visible');
   expect(/KB|MB/.test(doc.getElementById('outSize').textContent), 'new size shown');
@@ -212,8 +218,8 @@ await check('image → PDF wraps the image and names it .pdf', async () => {
   doc.getElementById('size').value = '100';
   doc.getElementById('toolForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(200);
-  equal(doc.getElementById('outName').textContent, 'scan 01-under200kb.pdf', 'pdf name');
-  equal(doc.getElementById('download').getAttribute('download'), 'scan 01-under200kb.pdf', 'download attribute');
+  equal(downloadName(page), 'scan 01-under200kb.pdf', 'pdf name');
+  equal(doc.getElementById('downloadLabel').textContent, 'Download scan 01-under200kb.pdf', 'button label');
   const event = events.find((e) => e.event === 'compress');
   equal(event.data.d, 'image-pdf', 'direction recorded');
 });
@@ -242,10 +248,10 @@ await check('PDF → JPG uses the first page and the compressed suffix', async (
   doc.getElementById('fmtJpg').dispatchEvent(new window.Event('change', { bubbles: true }));
   doc.getElementById('toolForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(200);
-  equal(doc.getElementById('outName').textContent, 'JAMB.result.2026-compressed.jpg', 'pdf→jpg name');
+  equal(downloadName(page), 'JAMB.result.2026-compressed.jpg', 'pdf→jpg name');
   const event = events.find((e) => e.event === 'compress');
   equal(event.data.d, 'pdf-jpg', 'direction recorded');
-  expect(/Destination: JPG/.test(doc.getElementById('formatHelp').textContent), 'destination hint');
+  expect(/becomes a JPG/.test(doc.getElementById('formatHelp').textContent), 'destination hint');
 });
 
 await check('PDF → PDF keeps the compressed suffix', async () => {
@@ -267,11 +273,11 @@ await check('PDF → PDF keeps the compressed suffix', async () => {
   selectFile(page, file);
   await wait(120);
   expect(/first page/i.test(doc.getElementById('status').textContent), 'multi-page PDF should be explained: ' + doc.getElementById('status').textContent);
-  equal(doc.getElementById('goLabel').textContent, 'Compress & prepare download', 'label restored');
+  equal(doc.getElementById('goLabel').textContent, 'Compress file', 'label restored');
   doc.getElementById('fmtPdf').checked = true;
   doc.getElementById('toolForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(200);
-  equal(doc.getElementById('outName').textContent, 'certificate.v1-compressed.pdf', 'pdf→pdf name');
+  equal(downloadName(page), 'certificate.v1-compressed.pdf', 'pdf→pdf name');
 });
 
 await check('quality steps down until the limit is met', async () => {
@@ -349,16 +355,77 @@ await check('start over resets the tool', async () => {
   equal(doc.activeElement.id, 'file', 'focus back on the picker');
 });
 
-await check('opt-out toggle writes only a local preference', async () => {
+await check('privacy panel opens, saves and confirms', async () => {
   const page = buildPage();
   const { doc, window } = page;
+  const dialog = doc.getElementById('privacyDialog');
+  equal(dialog.hasAttribute('open'), false, 'dialog starts closed');
+
+  doc.getElementById('privacyOpen').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  equal(doc.getElementById('privacyDialog').open || doc.getElementById('privacyDialog').hasAttribute('open'), true, 'dialog opens');
+  equal(doc.getElementById('privacySaved').hidden, true, 'no confirmation before saving');
+
   const toggle = doc.getElementById('optout');
+  equal(toggle.checked, false, 'counts on by default');
   toggle.checked = true;
-  toggle.dispatchEvent(new window.Event('change', { bubbles: true }));
-  equal(window.localStorage.getItem('u200kb-analytics-optout'), '1', 'preference stored');
+  equal(window.localStorage.getItem('u200kb-analytics-optout'), null, 'nothing saved until Save is pressed');
+
+  doc.getElementById('privacySave').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  equal(window.localStorage.getItem('u200kb-analytics-optout'), '1', 'preference stored on save');
+  equal(doc.getElementById('privacySaved').hidden, false, 'confirmation shown');
+  expect(/Saved\./.test(doc.getElementById('privacySaved').textContent), 'confirmation wording: ' + doc.getElementById('privacySaved').textContent);
+  expect(/off/.test(doc.getElementById('privacySaved').textContent), 'confirmation states the outcome');
+  expect(/off/.test(doc.getElementById('privacyState').textContent), 'footer state updated');
+
+  doc.getElementById('privacyClose').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  equal(doc.getElementById('privacyDialog').open || doc.getElementById('privacyDialog').hasAttribute('open'), false, 'close button closes the dialog');
+});
+
+await check('privacy cancel discards an unsaved change', async () => {
+  const page = buildPage();
+  const { doc, window } = page;
+  window.localStorage.setItem('u200kb-analytics-optout', '1');
+  doc.getElementById('privacyOpen').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  const toggle = doc.getElementById('optout');
+  equal(toggle.checked, true, 'reflects the saved choice when opened');
   toggle.checked = false;
-  toggle.dispatchEvent(new window.Event('change', { bubbles: true }));
-  equal(window.localStorage.getItem('u200kb-analytics-optout'), null, 'preference cleared');
+  doc.getElementById('privacyCancel').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  equal(window.localStorage.getItem('u200kb-analytics-optout'), '1', 'saved choice is unchanged after cancel');
+  equal(doc.getElementById('privacyDialog').open || doc.getElementById('privacyDialog').hasAttribute('open'), false, 'dialog closed');
+});
+
+await check('privacy panel can be reopened and cleared for the next decision', async () => {
+  const page = buildPage();
+  const { doc, window } = page;
+  doc.getElementById('privacyOpen').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  doc.getElementById('privacySave').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  equal(doc.getElementById('privacySaved').hidden, false, 'confirmation after first save');
+  doc.getElementById('privacyClose').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  doc.getElementById('privacyOpen').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await wait(10);
+  equal(doc.getElementById('privacySaved').hidden, true, 'confirmation resets for the next visit');
+});
+
+await check('page copy is tight and free of em dashes', async () => {
+  const page = buildPage();
+  const { doc } = page;
+  const text = doc.body.textContent.replace(/\s+/g, ' ').trim();
+  expect(!text.includes('\u2014'), 'em dash found in body copy');
+  expect(!text.includes('\u2013'), 'en dash found in body copy');
+  expect(!/Ushcodex Technologies · Free tool/i.test(text), 'the eyebrow line should be gone');
+  expect(!/Download name/i.test(text), 'the filename should not be printed beside the button');
+  const words = text.split(' ').filter(Boolean).length;
+  expect(words < 190, 'the page carries too much copy: ' + words + ' words');
+  const downloadLabels = (text.match(/under200kb\./g) || []).length;
+  equal(downloadLabels, 0, 'no filename placeholder in the initial page copy');
 });
 
 await check('analytics survives GPC, DNT and blocked storage', async () => {
@@ -408,7 +475,7 @@ await check('failing analytics never breaks compression', async () => {
   doc.getElementById('toolForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(150);
   equal(doc.getElementById('result').hidden, false, 'compression still completes');
-  equal(doc.getElementById('outName').textContent, 'ok-under200kb.jpg', 'name still correct');
+  equal(downloadName(page), 'ok-under200kb.jpg', 'name still correct');
 });
 
 console.log('ui: ' + passed + ' checks passed' + (failures.length ? ', ' + failures.length + ' failed' : ''));

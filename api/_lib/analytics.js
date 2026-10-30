@@ -113,7 +113,11 @@ function sendJson(res, status, body, extraHeaders) {
 }
 
 async function readJson(req) {
+  // Beacons may arrive as application/json, text/plain or a raw buffer.
   if (req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body)) return req.body;
+  if (Buffer.isBuffer(req.body)) {
+    try { return JSON.parse(req.body.toString('utf8')); } catch (e) { return {}; }
+  }
   if (typeof req.body === 'string') {
     try { return JSON.parse(req.body); } catch (e) { return {}; }
   }
