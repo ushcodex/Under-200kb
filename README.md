@@ -23,7 +23,7 @@ nothing is uploaded, and no file name, content or size is ever sent anywhere.
 
 ```
 index.html          tool page (CSS is inlined at build time)
-styles.css          source of truth for styles — run `npm run build` after editing
+styles.css          source of truth for styles — run `npm run inline-css` after editing
 app.js              the compressor
 analytics.js        opt-out aware, non-blocking analytics client
 sw.js               service worker (v3: network-first pages, SWR assets)
@@ -40,7 +40,7 @@ docs/ANALYTICS.md   analytics design, privacy posture and environment setup
 
 ```
 npm install
-npm run build      # inline styles.css into index.html
+npm run inline-css # re-inline styles.css into index.html
 npm run dev        # preview on http://0.0.0.0:3000 (in-memory analytics store)
 npm test           # unit + API + DOM + contrast tests
 ```
