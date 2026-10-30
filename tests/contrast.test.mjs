@@ -164,7 +164,7 @@ check('inlined CSS matches styles.css', () => {
 
 check('service worker cache version was bumped and pages are network-first', () => {
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-  expect(/CACHE_VERSION = 'u200kb-v4'/.test(sw), 'cache version');
+  expect(/CACHE_VERSION = 'u200kb-v5'/.test(sw), 'cache version');
   expect(/request\.mode === 'navigate'/.test(sw), 'navigation handling');
   expect(/isAnalytics/.test(sw) && /isVendor/.test(sw), 'api + vendor handling');
   expect(/caches\.delete/.test(sw), 'old caches are removed on activate');

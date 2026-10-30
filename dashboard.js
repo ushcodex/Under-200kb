@@ -33,6 +33,7 @@
     receiverLine: $('receiverLine'),
     testResult: $('testResult'),
     sendTest: $('sendTest'),
+    repair: $('repair'),
     recheck: $('recheck')
   };
 
@@ -226,10 +227,9 @@
     return Math.round(seconds / 86400) + ' d ago';
   }
 
-  function renderReceiver(health, options) {
+  function renderReceiver(health) {
     if (!el.receiverLine) return;
     var receiver = (health && health.receiver) || null;
-    var container = options || {};
     if (!receiver) {
       el.receiverLine.textContent = 'Could not read the receiver status.';
       return;
@@ -237,16 +237,45 @@
     if (receiver.received) {
       el.receiverLine.textContent = 'Last counter write: ' + ago(receiver.lastWriteAt) +
         (receiver.lastEvent ? ' (' + receiver.lastEvent + ')' : '') + '.';
-      if (container.afterTest) {
-        showTest('The server received the test event. Counting works from this browser.', true);
-      }
-      return;
+    } else {
+      el.receiverLine.textContent = 'No counter writes received yet. Load the tool once, then check again.';
     }
-    el.receiverLine.textContent = 'No counter writes received yet. Load the tool once, then check again.';
-    if (container.afterTest) {
-      showTest('The server did not receive the test event. A blocker, or an extension, is stopping /api/collect.', false);
+    var failure = health && health.lastFailure;
+    if (failure && failure.reason) {
+      el.receiverLine.textContent += ' The last rejected write (' + ago(failure.at) + ') was ' +
+        failure.command + ' on ' + (failure.key || 'a counter key') + ': ' + failure.reason + '.';
     }
+    if (el.repair) el.repair.hidden = !(failure && failure.reason);
   }
+
+  /* One broken key blocks every counter in its batch. This deletes that single
+   * key, after a confirmation, so counting resumes without a database reset. */
+  function repairCounter() {
+    if (!window.confirm('Delete the one counter key that is blocking writes? Only counts held by that broken key are lost.')) return;
+    el.repair.disabled = true;
+    el.repair.textContent = 'Repairing…';
+    fetch('/api/health', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8', Accept: 'application/json' },
+      body: JSON.stringify({ action: 'repair' })
+    }).then(function (response) { return response.json().catch(function () { return null; }); })
+      .then(function (result) {
+        if (result && result.ok) {
+          showTest('The broken key was deleted. Send a test event to confirm counting.', true);
+          checkHealth();
+        } else {
+          showTest((result && result.error) || 'The repair did not run.', false);
+        }
+      })
+      .catch(function () { showTest('The repair request could not be sent.', false); })
+      .then(function () {
+        el.repair.disabled = false;
+        el.repair.textContent = 'Repair counter';
+      });
+  }
+
+  if (el.repair) el.repair.addEventListener('click', repairCounter);
 
   function showTest(message, ok) {
     if (!el.testResult) return;
@@ -279,7 +308,7 @@
     el.storageBadge.className = 'badge badge-idle';
     el.storageBadge.textContent = 'Checking';
     el.storageMessage.textContent = 'Checking the analytics database.';
-    fetch('/api/health', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    fetch('/api/health?fresh=1', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
       .then(function (response) { return response.json().catch(function () { return null; }); })
       .then(renderStorage)
       .catch(function () {
@@ -291,29 +320,65 @@
 
   if (el.recheck) el.recheck.addEventListener('click', checkHealth);
 
+  /* The test event goes through the probe form of /api/collect, which answers
+   * with what happened to this one request. That turns "it does not count"
+   * into a sentence about the real cause instead of a guess. */
+  function explainProbe(result) {
+    if (!result) return 'The server answered, but not in a way this page understands. Try again.';
+    if (result.recorded && result.counters === false) {
+      return 'The event was received, but one counter was refused (' + (result.reason || 'unknown') +
+        (result.command ? ' on ' + result.command : '') + '). Visits stay at zero until that key is fixed.';
+    }
+    if (result.recorded) return 'The server received the test event and wrote it. Counting works from this browser.';
+    switch (result.dropped) {
+      case 'privacy-signal':
+        return 'Your browser sends ' + (result.signal === 'gpc' ? 'Global Privacy Control' : 'Do Not Track') +
+          ', so counts are dropped on purpose. Nothing is broken.';
+      case 'storage':
+        return 'The server could not reach storage, so it dropped the event (' + (result.reason || 'unknown') + ').';
+      case 'write':
+        return 'The event arrived but the database refused the write (' + (result.reason || 'unknown') +
+          (result.command ? ' on ' + result.command : '') + ').';
+      case 'event':
+      case 'payload':
+        return 'The event arrived but was rejected as malformed. This is a bug in the dashboard, not a blocker.';
+      default:
+        return 'The event arrived but was not recorded (' + (result.dropped || 'unknown') + ').';
+    }
+  }
+
+  function readJsonSafely(response) {
+    return response.json().catch(function () { return null; });
+  }
+
   if (el.sendTest) {
     el.sendTest.addEventListener('click', function () {
       if (el.testResult) el.testResult.hidden = true;
       el.sendTest.disabled = true;
       el.sendTest.textContent = 'Sending…';
       var payload = JSON.stringify({ e: 'ping' });
-      fetch('/api/collect', {
+      fetch('/api/collect?probe=1', {
         method: 'POST',
         credentials: 'same-origin',
+        cache: 'no-store',
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: payload
       }).then(function (response) {
-        if (!response.ok) throw new Error('status ' + response.status);
-        return new Promise(function (resolve) { setTimeout(resolve, 700); });
-      }).then(function () {
-        return fetch('/api/health', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-      }).then(function (response) { return response.json(); })
-        .then(function (health) {
-          renderStorage(health);
-          renderReceiver(health, { afterTest: true });
-        })
+        if (!response.ok) {
+          showTest('The server answered ' + response.status + ' before recording anything. Check the function log.', false);
+          return null;
+        }
+        return readJsonSafely(response);
+      }).then(function (result) {
+        var ok = Boolean(result && result.recorded);
+        showTest(explainProbe(result), ok);
+        return fetch('/api/health?fresh=1', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+          .then(function (response) { return response.json(); })
+          .then(renderStorage)
+          .catch(function () { /* the probe answer already said what we know */ });
+      })
         .catch(function () {
-          showTest('The browser could not reach /api/collect. Check for a content blocker.', false);
+          showTest('The request never left this browser. A content blocker or extension is stopping /api/collect.', false);
         })
         .then(function () {
           el.sendTest.disabled = false;

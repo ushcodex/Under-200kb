@@ -336,7 +336,7 @@ await check('a new service worker version replaces the old cache', async () => {
   const page = await newPage();
   await page.evaluate(() => navigator.serviceWorker.ready);
   const caches = await page.evaluate(() => window.caches.keys());
-  expect(caches.includes('u200kb-v4'), 'expected u200kb-v4 cache, saw ' + caches.join(','));
+  expect(caches.includes('u200kb-v5'), 'expected u200kb-v5 cache, saw ' + caches.join(','));
   expect(!caches.some((key) => key.startsWith('under200kb-')), 'old cache should be removed');
   await page.close();
 });

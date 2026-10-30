@@ -31,7 +31,7 @@ dashboard.html/.js  private analytics dashboard
 api/collect.js      POST counter endpoint
 api/stats.js        protected dashboard feed
 api/gsc.js          Search Console aggregate
-api/health.js       storage self check shown in the dashboard
+api/health.js       storage self check and one-key repair, shown in the dashboard
 vendor/             self-hosted pdf.js + jsPDF (no CDN, works offline)
 fonts/              self-hosted Inter + Space Mono subsets
 docs/ANALYTICS.md   analytics design, privacy posture and environment setup

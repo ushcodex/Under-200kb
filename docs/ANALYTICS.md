@@ -39,10 +39,32 @@ Open `/dashboard` (or `/api/health` directly) and look at the storage strip:
 
 Reason codes: `not-configured`, `missing-url`, `missing-token`, `bad-url`, `bad-token`,
 `rejected-credentials`, `wrong-endpoint`, `unreachable`, `timeout`, `rate-limited`,
-`storage-unavailable`, `write-not-persisted`.
+`storage-unavailable`, `write-not-persisted`, `wrong-type`, `quota`, `rejected-command`.
 
 Failures are also logged as one short line in the Vercel function logs
-(`[u200kb] collect: write failed (reason)`), with no payloads and no secrets.
+(`[u200kb] collect: write failed (reason on COMMAND)`), with no payloads and no secrets.
+
+### Send test event
+
+The dashboard button posts one ping to `/api/collect?probe=1`. The probe form answers with what
+happened to that single request, which separates the three cases that all look like "not counting":
+
+| Reply | Meaning |
+| --- | --- |
+| `recorded:true` | the endpoint, the write and the storage path all work |
+| `dropped:"privacy-signal"` | the browser sent `Sec-GPC` or `DNT`; dropping is deliberate |
+| `dropped:"write"` | the request arrived but Redis refused the write; `reason` and `command` say which one |
+
+A plain beacon still gets an empty `204`, so the tool never sees analytics errors.
+
+### Rejected commands inside a batch
+
+Upstash answers `200` even when one command inside a pipeline is refused, so a single key holding
+the wrong Redis type can silently block every counter in the batch. `redis.pipeline(..., {strict:true})`
+now surfaces the first refusal, the receipt is retried on its own so the arrival is still recorded,
+and the failure is stored in `u200kb:v1:health:lastfail` (signed-in readers only). The dashboard shows
+the command and key, and **Repair counter** deletes that one key inside `u200kb:v1:`. It is a
+targeted delete, never a reset.
 
 To prove a visit is recorded, load `/` once and then press Refresh in the dashboard: Visits
 increments for the current UTC day, and Sources/Devices fill in. Visits are not realtime (they are
@@ -53,7 +75,7 @@ aggregated per day), but they are booked immediately.
 * `navigator.globalPrivacyControl === true` → nothing is sent (checked in the browser **and**
   re-checked from the `Sec-GPC` header on the server).
 * `navigator.doNotTrack === '1'` / `DNT: 1` → nothing is sent.
-* The footer has an explicit opt-out checkbox (`localStorage["u200kb-analytics-optout"]`).
+* The footer opens a Privacy and analytics panel that saves an explicit choice (`localStorage["u200kb-analytics-optout"]`).
 * Analytics is fire-and-forget: `sendBeacon` first, `fetch` fallback, every failure swallowed.
   Nothing about it can interrupt compression, conversion or downloads.
 * Dashboard traffic is `noindex`, `no-store`, and never analysed.

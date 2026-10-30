@@ -67,12 +67,50 @@ async function command(args, timeoutMs) {
 }
 
 /** Run many commands in a single HTTP round-trip; returns an array of results. */
-async function pipeline(commands, timeoutMs) {
+/**
+ * Run commands in one round trip.
+ *
+ * Upstash answers 200 even when individual commands inside the batch were
+ * rejected (a wrong key type, for example), so a batched counter write can
+ * fail while the HTTP call looks fine. With {strict:true} the first rejected
+ * command throws instead, carrying a sanitised description of what was
+ * refused. Without it the old forgiving behaviour is kept.
+ */
+async function pipeline(commands, timeoutMs, options) {
   if (!configured()) throw new Error('redis not configured');
   if (!commands.length) return [];
   const data = await call('/pipeline', commands, timeoutMs);
   if (!Array.isArray(data)) throw new Error('redis pipeline failed');
+  const failures = [];
+  data.forEach((entry, index) => {
+    if (!entry || !Object.prototype.hasOwnProperty.call(entry, 'error')) return;
+    const args = commands[index] || [];
+    failures.push({
+      index: index,
+      command: String(args[0] || ''),
+      key: String(args[1] || ''),
+      message: String(entry.error || '').slice(0, 140)
+    });
+  });
+  if (failures.length && options && options.strict) {
+    const error = new Error(failures[0].message || 'redis command rejected');
+    error.failures = failures;
+    throw error;
+  }
   return data.map((entry) => (entry && Object.prototype.hasOwnProperty.call(entry, 'result') ? entry.result : null));
+}
+
+/** Short, secret-free description of a rejected command. */
+function failureInfo(error) {
+  const list = (error && error.failures) || [];
+  const first = list[0] || null;
+  return {
+    reason: describeError(error),
+    command: first ? first.command : null,
+    key: first ? first.key : null,
+    message: first ? first.message : String((error && error.message) || '').slice(0, 140),
+    count: list.length
+  };
 }
 
 function key(...parts) {
@@ -91,6 +129,9 @@ function describeError(error) {
   const message = String(error.message || '');
   if (/fetch failed|ENOTFOUND|EAI_AGAIN|network|Invalid URL/i.test(message)) return 'unreachable';
   if (/WRONGPASS|NOPERM|invalid.*(token|password)/i.test(message)) return 'rejected-credentials';
+  if (/WRONGTYPE/i.test(message)) return 'wrong-type';
+  if (/OOM|maxmemory|limit exceeded/i.test(message)) return 'quota';
+  if (/^ERR/i.test(message)) return 'rejected-command';
   return 'error';
 }
 
@@ -118,4 +159,4 @@ async function diagnose() {
   }
 }
 
-module.exports = { PREFIX, key, configured, configProblem, command, pipeline, describeError, diagnose };
+module.exports = { PREFIX, key, configured, configProblem, command, pipeline, describeError, failureInfo, diagnose };
