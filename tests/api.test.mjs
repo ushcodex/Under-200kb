@@ -280,6 +280,20 @@ await check('dashboard sign-in sets a hardened cookie and returns aggregates', a
   expect(!JSON.stringify(body).includes('203.0.113'), 'no IPs in the report');
 });
 
+await check('unconfigured deployments degrade cleanly', async () => {
+  const savedUrl = process.env.U200_ANALYTICS_REDIS_REST_URL;
+  const savedToken = process.env.U200_ANALYTICS_REDIS_REST_TOKEN;
+  delete process.env.U200_ANALYTICS_REDIS_REST_URL;
+  delete process.env.U200_ANALYTICS_REDIS_REST_TOKEN;
+  const collectRes = await run(collect, mockReq({ headers: { 'user-agent': UA }, body: { e: 'view' } }));
+  const statsRes = await run(stats, mockReq({ method: 'GET', headers: {}, query: { range: '30' } }));
+  process.env.U200_ANALYTICS_REDIS_REST_URL = savedUrl;
+  process.env.U200_ANALYTICS_REDIS_REST_TOKEN = savedToken;
+  equal(collectRes.status, 204, 'collect must stay a no-op 204');
+  equal(statsRes.status, 503, 'stats should explain the missing configuration');
+  expect(/not configured/i.test(statsRes.json().error || ''), 'clear message');
+});
+
 await check('stats requires a session', async () => {
   const res = await run(stats, mockReq({ method: 'GET', headers: {}, query: { range: '7' } }));
   equal(res.status, 401, 'status');

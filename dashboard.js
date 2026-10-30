@@ -70,6 +70,7 @@
   function showLogin(message) {
     el.dashboard.hidden = true;
     el.loginCard.hidden = false;
+    showError('');
     if (message) {
       el.loginError.textContent = message;
       el.loginError.hidden = false;
@@ -251,6 +252,11 @@
           return null;
         }
         return response.json().catch(function () { return null; }).then(function (body) {
+          if (response.status === 503) {
+            // Storage is not wired up on this deployment: say so on the sign-in card.
+            showLogin((body && body.error) || 'Analytics storage is not configured.');
+            return null;
+          }
           if (!response.ok || !body || body.ok === false) {
             showError((body && body.error) || 'The dashboard could not load analytics data.');
             return null;
