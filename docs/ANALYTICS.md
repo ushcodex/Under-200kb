@@ -1,4 +1,4 @@
-# Under 200KB — private analytics
+# Under 200KB: private analytics
 
 Under 200KB keeps Vercel Analytics (the `/_vercel/insights` script in `index.html`) and adds its
 own private, aggregate-only analytics with a protected dashboard.
@@ -27,6 +27,26 @@ cross-site identifiers, raw IP addresses, or anything that can be joined to an i
 The unique-visitor estimate uses a daily HyperLogLog of an HMAC of `IP + UA + day`, keyed by
 `U200_ANALYTICS_SECRET`. The hash rotates every day, is truncated, and cannot be reversed. It is
 only ever fed to `PFADD`/`PFCOUNT`, so no per-visitor rows exist.
+
+## Checking that it counts
+
+Open `/dashboard` (or `/api/health` directly) and look at the storage strip:
+
+| Badge | Meaning | Fix |
+| --- | --- | --- |
+| Storage OK | write, read and delete all worked inside `u200kb:v1:` | nothing |
+| Storage problem | the strip names the reason code | see below |
+
+Reason codes: `not-configured`, `missing-url`, `missing-token`, `bad-url`, `bad-token`,
+`rejected-credentials`, `wrong-endpoint`, `unreachable`, `timeout`, `rate-limited`,
+`storage-unavailable`, `write-not-persisted`.
+
+Failures are also logged as one short line in the Vercel function logs
+(`[u200kb] collect: write failed (reason)`), with no payloads and no secrets.
+
+To prove a visit is recorded, load `/` once and then press Refresh in the dashboard: Visits
+increments for the current UTC day, and Sources/Devices fill in. Visits are not realtime (they are
+aggregated per day), but they are booked immediately.
 
 ## Privacy controls
 
@@ -57,7 +77,7 @@ Set these on the Vercel project `under-200kb` (Production + Preview). They are s
 | --- | --- | --- |
 | `U200_ANALYTICS_REDIS_REST_URL` | yes | REST URL of the **existing** shared Upstash database |
 | `U200_ANALYTICS_REDIS_REST_TOKEN` | yes | token for that same database |
-| `U200_ANALYTICS_PASSWORD` | yes | password for `/dashboard` — different from every other dashboard |
+| `U200_ANALYTICS_PASSWORD` | yes | password for `/dashboard`, different from every other dashboard |
 | `U200_ANALYTICS_SECRET` | yes | HMAC key for sessions and visitor hashes |
 | `U200_GSC_SITE` | optional | e.g. `sc-domain:ushcodex.tech`, used by `/api/gsc` |
 | `U200_GSC_SERVICE_ACCOUNT_JSON` | optional | read-only service-account key (raw JSON or base64) |
@@ -81,7 +101,7 @@ session cookie.
   the service account's `client_email` as a **Full** or **Restricted** user on the verified
   property that covers `under200kb.ushcodex.tech` (`sc-domain:ushcodex.tech` covers the subdomain).
 * Store the key JSON in `U200_GSC_SERVICE_ACCOUNT_JSON`.
-* Scope requested is `webmasters.readonly` — read only.
+* Scope requested is `webmasters.readonly`, so access is read only.
 
 Search data is never joined to visit data, so the dashboard cannot attribute a search term to a
 visitor, and the UI says so.
@@ -93,8 +113,9 @@ visitor, and the UI says so.
 | `/api/collect` | POST | none, allow-listed payloads, GPC/DNT aware | counters |
 | `/api/stats` | POST `{password}` | password → HttpOnly session cookie (8 h) | sign in + first payload |
 | `/api/stats` | GET `?range=7\|30\|90\|all` | session cookie | dashboard payload |
-| `/api/stats` | POST `{logout:true}` | — | clear the cookie |
+| `/api/stats` | POST `{logout:true}` | none | clear the cookie |
 | `/api/gsc` | GET | session cookie | Search Console aggregate |
+| `/api/health` | GET | none for the storage verdict, session for counters | self check |
 
 Login attempts are limited to 8 per 15 minutes per visitor hash.
 

@@ -89,9 +89,17 @@ function createStore() {
           strings.set(args[1], String(next));
           return next;
         }
+        case 'HGET': {
+          const h = hash(args[1]);
+          return h.has(args[2]) ? h.get(args[2]) : null;
+        }
+        case 'PING': return 'PONG';
         case 'EXPIRE': return 1;
         case 'TTL': return strings.has(args[1]) ? 900 : -2;
-        case 'DEL': strings.delete(args[1]); hashes.delete(args[1]); return 1;
+        case 'DEL': {
+          const removed = strings.delete(args[1]) | hashes.delete(args[1]) | sets.delete(args[1]) | hll.delete(args[1]);
+          return removed ? 1 : 0;
+        }
         default: throw new Error('unsupported command ' + command);
       }
     }
@@ -135,6 +143,7 @@ delete process.env.USH_ANALYTICS_REDIS_REST_URL;
 const collect = require(path.join(root, 'api/collect.js'));
 const stats = require(path.join(root, 'api/stats.js'));
 const gsc = require(path.join(root, 'api/gsc.js'));
+const health = require(path.join(root, 'api/health.js'));
 
 function mockReq({ method = 'POST', headers = {}, body = undefined, query = {} } = {}) {
   return {
@@ -320,6 +329,14 @@ await check('logout clears the cookie', async () => {
   expect(/Max-Age=0/.test(res.headers['set-cookie']), 'cookie should be cleared');
 });
 
+await check('successful sign-ins do not count towards the limit', async () => {
+  const header = { 'user-agent': UA, 'x-forwarded-for': '198.51.100.99' };
+  for (let i = 0; i < 12; i += 1) {
+    const res = await run(stats, mockReq({ body: { password: 'correct-horse-battery', range: '7' }, headers: header }));
+    equal(res.status, 200, 'attempt ' + i);
+  }
+});
+
 await check('dashboard login is rate limited', async () => {
   let last = null;
   for (let i = 0; i < 12; i += 1) {
@@ -336,6 +353,58 @@ await check('stats reports storage outages without leaking details', async () =>
   process.env.U200_ANALYTICS_REDIS_REST_URL = saved;
   expect(res.status === 502 || res.status === 200, 'unexpected status ' + res.status);
   if (res.status === 502) equal(res.json().ok, false, 'error flag');
+});
+
+/* ---------------- health ---------------- */
+health.resetCache();
+await check('health reports a working store without exposing secrets', async () => {
+  health.resetCache();
+  const res = await run(health, mockReq({ method: 'GET', headers: {} }));
+  equal(res.status, 200, 'status');
+  const body = res.json();
+  equal(body.storage.reachable, true, 'reachable');
+  equal(body.storage.reason, 'ok', 'reason');
+  expect(!body.env, 'env details require a session');
+  expect(!JSON.stringify(body).includes('test-token'), 'token leaked');
+  expect(!JSON.stringify(body).includes(base), 'endpoint leaked');
+});
+
+await check('health explains a bad configuration', async () => {
+  health.resetCache();
+  const savedUrl = process.env.U200_ANALYTICS_REDIS_REST_URL;
+  const savedToken = process.env.U200_ANALYTICS_REDIS_REST_TOKEN;
+
+  delete process.env.U200_ANALYTICS_REDIS_REST_TOKEN;
+  health.resetCache();
+  let res = await run(health, mockReq({ method: 'GET', headers: {} }));
+  equal(res.json().storage.reason, 'missing-token', 'missing token');
+
+  process.env.U200_ANALYTICS_REDIS_REST_TOKEN = savedToken;
+  process.env.U200_ANALYTICS_REDIS_REST_URL = 'redis://wrong.example:6379';
+  health.resetCache();
+  res = await run(health, mockReq({ method: 'GET', headers: {} }));
+  equal(res.json().storage.reason, 'bad-url', 'redis:// url rejected');
+
+  process.env.U200_ANALYTICS_REDIS_REST_URL = 'http://127.0.0.1:1';
+  health.resetCache();
+  res = await run(health, mockReq({ method: 'GET', headers: {} }));
+  equal(res.json().storage.reachable, false, 'unreachable host');
+  expect(['unreachable', 'timeout'].includes(res.json().storage.reason), 'reason: ' + res.json().storage.reason);
+
+  process.env.U200_ANALYTICS_REDIS_REST_URL = savedUrl;
+  process.env.U200_ANALYTICS_REDIS_REST_TOKEN = savedToken;
+  health.resetCache();
+});
+
+await check('health gives signed-in users counters and env flags', async () => {
+  health.resetCache();
+  const res = await run(health, mockReq({ method: 'GET', headers: { cookie: sessionCookie } }));
+  equal(res.status, 200, 'status');
+  const body = res.json();
+  expect(body.storage.namespace === 'u200kb:v1:', 'namespace');
+  equal(body.env.password, true, 'password configured');
+  equal(body.env.secret, true, 'secret configured');
+  expect(body.counters.daysTracked >= 1, 'days tracked');
 });
 
 /* ---------------- Search Console ---------------- */

@@ -1,4 +1,4 @@
-/* POST /api/collect — anonymous, aggregate-only counters for Under 200KB.
+/* POST /api/collect: anonymous, aggregate-only counters for Under 200KB.
  *
  * Nothing identifying is stored: no file names, no file contents, no IP
  * addresses, no cookies, no per-visitor rows. A visit writes a handful of
@@ -15,6 +15,11 @@ const EVENTS = new Set(['view', 'file_selected', 'compress', 'download']);
 const DIRECTIONS = new Set(['image-jpg', 'image-pdf', 'pdf-jpg', 'pdf-pdf']);
 const BUCKETS = new Set(['<=50', '<=100', '<=200', '<=500', '>500']);
 const KINDS = new Set(['image', 'pdf']);
+
+function log(message) {
+  // One short line, no payload, no secrets. Shows up in Vercel logs.
+  console.error('[u200kb] ' + message);
+}
 
 function noContent(res) {
   res.statusCode = 204;
@@ -44,7 +49,11 @@ module.exports = async function handler(req, res) {
   }
   // Honour browser-level privacy signals even if the client is tampered with.
   if (optOutRequested(req)) return noContent(res);
-  if (!redis.configured()) return noContent(res);
+  const problem = redis.configProblem();
+  if (problem) {
+    if (problem !== 'not-configured') log('collect: storage ' + problem);
+    return noContent(res);
+  }
 
   let payload;
   try {
@@ -98,7 +107,8 @@ module.exports = async function handler(req, res) {
 
     if (commands.length) await redis.pipeline(commands, 2000);
   } catch (e) {
-    // Deliberately silent: a failed counter must never reach the browser.
+    // The browser must never see this, but it has to be visible to us.
+    log('collect: write failed (' + redis.describeError(e) + ')');
   }
   return noContent(res);
 };

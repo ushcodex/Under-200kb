@@ -1,4 +1,4 @@
-/* Under 200KB — privacy-first, non-blocking analytics client.
+/* Under 200KB: privacy-first, non-blocking analytics client.
  * Sends a handful of anonymous counters to /api/collect. It never sends file
  * names, file contents, sizes of files, or anything that identifies a person,
  * and every failure is swallowed so the tool keeps working.
@@ -53,14 +53,15 @@
     try { body = JSON.stringify(payload); } catch (e) { return; }
     try {
       if (navigator.sendBeacon) {
-        var blob = new Blob([body], { type: 'application/json' });
+        // text/plain keeps the beacon a simple request in every browser.
+        var blob = new Blob([body], { type: 'text/plain;charset=UTF-8' });
         if (navigator.sendBeacon(ENDPOINT, blob)) return;
       }
     } catch (e) { /* fall back to fetch */ }
     try {
       fetch(ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: body,
         keepalive: true,
         credentials: 'omit',

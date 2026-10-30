@@ -1,4 +1,4 @@
-/* /api/stats — the private Under 200KB dashboard feed.
+/* /api/stats: the private Under 200KB dashboard feed.
  *
  * POST { password }  -> verifies the dashboard password, sets an HttpOnly
  *                       session cookie and returns the current range.
@@ -21,16 +21,36 @@ const LOGIN_MAX_ATTEMPTS = 8;
 
 const memoryLimits = new Map();
 
-async function rateLimit(ip) {
-  const bucket = redis.key('rl', analytics.visitorHash(ip, 'dashboard-login', 'static') || 'anon');
+function limitKey(ip) {
+  return redis.key('rl', analytics.visitorHash(ip, 'dashboard-login', 'static') || 'anon');
+}
+
+/** Failed attempts in the current window, without adding one. */
+async function attempts(ip) {
+  const bucket = limitKey(ip);
   if (redis.configured()) {
     try {
-      const results = await redis.pipeline([['INCR', bucket], ['TTL', bucket]], 1500);
-      const count = Number(results[0] || 0);
-      if (count === 1) await redis.command(['EXPIRE', bucket, String(LOGIN_WINDOW_SECONDS)], 1500);
-      return count <= LOGIN_MAX_ATTEMPTS;
+      const value = await redis.command(['GET', bucket], 1500);
+      return Number(value || 0);
     } catch (e) {
-      // fall through to the in-memory guard
+      // fall back to the in-process guard
+    }
+  }
+  const entry = memoryLimits.get(bucket);
+  if (!entry || Date.now() > entry.reset) return 0;
+  return entry.count;
+}
+
+/** Only wrong passwords count towards the limit. */
+async function recordFailure(ip) {
+  const bucket = limitKey(ip);
+  if (redis.configured()) {
+    try {
+      const count = Number(await redis.command(['INCR', bucket], 1500));
+      if (count === 1) await redis.command(['EXPIRE', bucket, String(LOGIN_WINDOW_SECONDS)], 1500);
+      return count;
+    } catch (e) {
+      // fall through
     }
   }
   const now = Date.now();
@@ -41,7 +61,15 @@ async function rateLimit(ip) {
   }
   entry.count += 1;
   memoryLimits.set(bucket, entry);
-  return entry.count <= LOGIN_MAX_ATTEMPTS;
+  return entry.count;
+}
+
+async function clearFailures(ip) {
+  const bucket = limitKey(ip);
+  memoryLimits.delete(bucket);
+  if (redis.configured()) {
+    try { await redis.command(['DEL', bucket], 1500); } catch (e) { /* best effort */ }
+  }
 }
 
 function emptyDay(date) {
@@ -182,10 +210,23 @@ async function buildStats(rangeKey) {
   return result;
 }
 
-module.exports = async function handler(req, res) {
-  if (!redis.configured()) {
-    return analytics.sendJson(res, 503, { ok: false, error: 'Analytics is not configured on this deployment.' });
+function storageError(res) {
+  const problem = redis.configProblem();
+  if (problem) {
+    return analytics.sendJson(res, 503, {
+      ok: false,
+      error: 'Analytics storage is not configured on this deployment.',
+      reason: problem
+    });
   }
+  return analytics.sendJson(res, 502, {
+    ok: false,
+    error: 'Analytics storage did not respond. Open the storage check above for the reason.'
+  });
+}
+
+module.exports = async function handler(req, res) {
+  if (redis.configProblem()) return storageError(res);
 
   const cookies = analytics.parseCookies(req.headers.cookie);
   const session = cookies[analytics.SESSION_COOKIE];
@@ -201,13 +242,14 @@ module.exports = async function handler(req, res) {
     }
 
     const provided = typeof body.password === 'string' ? body.password : '';
-    const allowed = await rateLimit(ip);
-    if (!allowed) {
+    if ((await attempts(ip)) >= LOGIN_MAX_ATTEMPTS) {
       return analytics.sendJson(res, 429, { ok: false, error: 'Too many attempts. Try again in 15 minutes.' });
     }
     if (!analytics.checkPassword(provided)) {
+      await recordFailure(ip);
       return analytics.sendJson(res, 401, { ok: false, error: 'That password does not match.' });
     }
+    await clearFailures(ip);
 
     const rangeKey = RANGES[body.range] !== undefined ? String(body.range) : '30';
     res.setHeader('Set-Cookie', analytics.sessionCookie(analytics.createSession(), analytics.SESSION_TTL_SECONDS));
@@ -215,7 +257,8 @@ module.exports = async function handler(req, res) {
       const data = await buildStats(rangeKey);
       return analytics.sendJson(res, 200, data);
     } catch (e) {
-      return analytics.sendJson(res, 502, { ok: false, error: 'Analytics storage did not respond.' });
+      console.error('[u200kb] stats: read failed (' + redis.describeError(e) + ')');
+      return storageError(res);
     }
   }
 
@@ -235,6 +278,7 @@ module.exports = async function handler(req, res) {
     const data = await buildStats(rangeKey);
     return analytics.sendJson(res, 200, data);
   } catch (e) {
-    return analytics.sendJson(res, 502, { ok: false, error: 'Analytics storage did not respond.' });
+    console.error('[u200kb] stats: read failed (' + redis.describeError(e) + ')');
+    return storageError(res);
   }
 };

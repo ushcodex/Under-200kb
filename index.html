@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Under 200KB — Compress images &amp; PDFs to a size limit</title>
-<meta name="description" content="Free tool to compress a JPG, PNG or single-page PDF under 50KB, 100KB or 200KB. Convert images to PDF and PDFs to JPG. Runs 100% in your browser — files never upload.">
+<title>Under 200KB | Compress images and PDFs to fit a size limit</title>
+<meta name="description" content="Compress a JPG, PNG or one-page PDF under 50KB, 100KB or 200KB, then convert between JPG and PDF. Free, no sign-up, and it runs in your browser.">
 <meta name="author" content="Ushcodex Technologies">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://under200kb.ushcodex.tech/">
@@ -13,17 +13,17 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Under 200KB">
-<meta property="og:title" content="Under 200KB — Compress images &amp; PDFs to a size limit">
-<meta property="og:description" content="Fit an image or single-page PDF under a strict upload limit. Nothing leaves your device.">
+<meta property="og:title" content="Under 200KB | Compress images and PDFs to fit a size limit">
+<meta property="og:description" content="Fit an image or one-page PDF under a strict upload limit. Files stay on your device.">
 <meta property="og:url" content="https://under200kb.ushcodex.tech/">
 <meta property="og:image" content="https://under200kb.ushcodex.tech/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Under 200KB, an Ushcodex Technologies tool for compressing files to a strict size limit.">
+<meta property="og:image:alt" content="Under 200KB, an Ushcodex Technologies tool for fitting files under a size limit.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@ushcodex">
-<meta name="twitter:title" content="Under 200KB — Compress to any size limit">
-<meta name="twitter:description" content="Compress images and single-page PDFs to fit upload limits. 100% client-side.">
+<meta name="twitter:title" content="Under 200KB | Compress to any size limit">
+<meta name="twitter:description" content="Compress images and one-page PDFs to fit upload limits. Runs in your browser.">
 <meta name="twitter:image" content="https://under200kb.ushcodex.tech/og-image.png">
 
 <link rel="icon" href="/ushcodex-icon.png" sizes="any">
@@ -32,8 +32,8 @@
 <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/inter-600.woff2" as="font" type="font/woff2" crossorigin>
 <style id="app-css">
-/* Under 200KB — Ushcodex Technologies
-   Palette: paper #f7f6f2 · ink #1b1a20 · purple #5f30aa · accent #ef7738
+/* Under 200KB by Ushcodex Technologies
+   Palette: paper #f7f6f2, ink #1b1a20, purple #5f30aa, accent #ef7738
    Text pairs are chosen for WCAG AA (most AAA): see tests/contrast.test.mjs */
 
 @font-face {
@@ -166,14 +166,6 @@ a:hover { color: var(--purple-dark); }
 main { flex: 1 0 auto; padding-bottom: 2.5rem; }
 
 .intro { padding: 1.75rem 0 1.25rem; max-width: 40rem; }
-.eyebrow {
-  margin: 0 0 .5rem;
-  font-size: .8125rem;
-  font-weight: 600;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--orange-ink);
-}
 h1 {
   font-size: clamp(1.7rem, 6vw, 2.35rem);
   line-height: 1.1;
@@ -459,13 +451,7 @@ fieldset > legend { margin-bottom: .45rem; }
 .result-stats dt { font-size: .75rem; color: var(--ink-3); margin: 0; }
 .result-stats dd { margin: .1rem 0 0; font-family: var(--mono); font-size: .9375rem; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 
-.out-name {
-  margin: 1rem 0 .4rem;
-  font-size: .875rem;
-  color: var(--ink-3);
-}
-.out-name b { display: block; font-family: var(--mono); font-size: .875rem; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
-
+.result .btn-primary { margin-top: 1rem; }
 .result-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
 .result-actions .btn-quiet { min-height: 2.75rem; flex: 1 1 8rem; }
 
@@ -476,10 +462,44 @@ footer p { margin: 0; }
 footer a { color: var(--ink-2); }
 footer a:hover { color: var(--purple-dark); }
 
-details.privacy { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: .6rem .8rem; }
-details.privacy summary { cursor: pointer; font-weight: 600; color: var(--ink-2); min-height: 1.75rem; display: flex; align-items: center; gap: .4rem; }
-details.privacy summary::marker { color: var(--purple); }
-details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
+.privacy-row { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; }
+.privacy-row .tiny { margin: 0; }
+
+/* opt-out dialog */
+.sheet {
+  width: min(30rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 24px 60px -20px rgba(27, 26, 32, .45);
+  overflow: auto;
+}
+.sheet::backdrop { background: rgba(27, 26, 32, .42); }
+.sheet-inner { display: grid; gap: .7rem; padding: 1.1rem; }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.sheet-head h2 { margin: 0; font-size: 1.125rem; font-weight: 600; }
+.sheet-inner p { margin: 0; font-size: .875rem; color: var(--ink-2); }
+.sheet-inner .tiny { color: var(--ink-3); }
+.sheet-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .35rem; }
+.sheet-actions .btn-primary { flex: 1 1 10rem; }
+.sheet-actions .btn-quiet { flex: 0 0 auto; min-height: 3.25rem; }
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--line-control);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--purple); color: var(--purple-dark); }
+
 .optout { display: flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--ink-2); }
 .optout input { width: 1.15rem; height: 1.15rem; accent-color: var(--purple); flex: 0 0 auto; }
 .tiny { font-size: .8125rem; color: var(--ink-3); }
@@ -522,8 +542,8 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
 
 <header class="topbar">
   <div class="wrap topbar-inner">
-    <a class="brand" href="/" aria-label="Under200KB — home">Under<b>200KB</b></a>
-    <a class="ush-link" href="https://ushcodex.tech/" aria-label="Ushcodex Technologies — main website">
+    <a class="brand" href="/" aria-label="Under 200KB home">Under<b>200KB</b></a>
+    <a class="ush-link" href="https://ushcodex.tech/" aria-label="Ushcodex Technologies website">
       <img src="/ushcodex-logo.svg" alt="Ushcodex Technologies" width="140" height="45" decoding="async">
     </a>
   </div>
@@ -531,9 +551,8 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
 
 <main class="wrap" id="tool">
   <section class="intro">
-    <p class="eyebrow">Ushcodex Technologies · Free tool</p>
     <h1>Any file. Any limit.</h1>
-    <p class="lede">Get past “file too large” errors. Squeeze a JPG, PNG or single-page PDF under the exact limit a form asks for — and switch between JPG and PDF on the way out.</p>
+    <p class="lede">Fit a JPG, PNG or one-page PDF under the size limit your form asks for.</p>
     <ol class="steps" aria-label="How it works">
       <li>Choose a file</li>
       <li>Set the limit</li>
@@ -549,8 +568,8 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
           <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
         </svg>
         <span class="dz-title" id="dzTitle">Tap to choose a file</span>
-        <span class="dz-hint" id="dzHint">JPG, PNG or a single-page PDF — or drag it here</span>
-        <span class="dz-note">Files are processed on your device. Nothing is uploaded.</span>
+        <span class="dz-hint" id="dzHint">JPG, PNG or one-page PDF</span>
+        <span class="dz-note">Stays on your device</span>
         <input type="file" id="file" name="file" accept="image/*,application/pdf" aria-describedby="dzHint">
       </label>
 
@@ -582,7 +601,7 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
             <button type="button" class="preset" data-kb="200" aria-pressed="true">200</button>
           </div>
         </div>
-        <p class="help" id="sizeHelp">The limit your upload form asks for, in kilobytes (KB).</p>
+        <p class="help" id="sizeHelp">The limit your form asks for.</p>
       </div>
 
       <fieldset class="field">
@@ -592,18 +611,18 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
             <input type="radio" name="format" id="fmtJpg" value="jpg">
             <span class="format-text">
               <strong>JPG image</strong>
-              <span class="format-desc">Converts a single-page PDF into an image.</span>
+              <span class="format-desc">For a PDF: page one becomes a picture.</span>
             </span>
           </label>
           <label class="format-opt" for="fmtPdf">
             <input type="radio" name="format" id="fmtPdf" value="pdf" checked>
             <span class="format-text">
               <strong>PDF document</strong>
-              <span class="format-desc">Converts an image into a PDF.</span>
+              <span class="format-desc">For an image: your picture becomes a PDF.</span>
             </span>
           </label>
         </div>
-        <p class="help" id="formatHelp">Pick JPG to turn a one-page PDF into an image, or PDF to wrap an image as a document.</p>
+        <p class="help" id="formatHelp" hidden></p>
       </fieldset>
 
       <div>
@@ -611,7 +630,7 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
             <path d="M13 3v13m0 0l-4-4m4 4l4-4M4 19h16"></path>
           </svg>
-          <span id="goLabel">Compress &amp; prepare download</span>
+          <span id="goLabel">Compress file</span>
         </button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div>
@@ -623,13 +642,12 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
     <div class="result-body">
       <img id="resultThumb" alt="" width="88" height="88" hidden decoding="async">
       <dl class="result-stats">
-        <div><dt>New size</dt><dd id="outSize">—</dd></div>
-        <div><dt>Original</dt><dd id="outOriginal">—</dd></div>
-        <div><dt>Limit</dt><dd id="outLimit">—</dd></div>
+        <div><dt>New size</dt><dd id="outSize">0</dd></div>
+        <div><dt>Original</dt><dd id="outOriginal">0</dd></div>
+        <div><dt>Limit</dt><dd id="outLimit">0</dd></div>
       </dl>
     </div>
-    <p class="out-name">Download name <b id="outName">—</b></p>
-    <a class="btn-primary" id="download" download href="#">
+    <a class="btn-primary" id="download" download href="#" aria-disabled="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
         <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"></path>
       </svg>
@@ -637,34 +655,47 @@ details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
     </a>
     <p class="msg msg-warn" id="resultWarn" hidden></p>
     <div class="result-actions">
-      <button type="button" class="btn-quiet" id="again">Compress another file</button>
-      <button type="button" class="btn-quiet" id="share">Share this tool</button>
+      <button type="button" class="btn-quiet" id="again">Start over</button>
+      <button type="button" class="btn-quiet" id="share">Share</button>
     </div>
   </section>
 
   <noscript>
-    <p class="msg msg-error">Under 200KB compresses files inside your browser, so JavaScript is required. Please enable it and reload.</p>
+    <p class="msg msg-error">This tool compresses files inside your browser, so JavaScript is required. Turn it on and reload the page.</p>
   </noscript>
 </main>
 
 <footer>
   <div class="wrap footer-inner">
-    <div>
-      <p>Built by <a href="https://usman.engineer/">Usman</a> at <a href="https://ushcodex.tech/">Ushcodex Technologies</a>.</p>
-      <p class="tiny">Free, no sign-up. Works offline once loaded.</p>
+    <p>Built by <a href="https://usman.engineer/">Usman</a> at <a href="https://ushcodex.tech/">Ushcodex Technologies</a>.</p>
+    <div class="privacy-row">
+      <button type="button" class="btn-quiet" id="privacyOpen" aria-haspopup="dialog">Privacy and analytics</button>
+      <span class="tiny" id="privacyState">Anonymous counts on</span>
     </div>
-    <details class="privacy">
-      <summary>Privacy &amp; analytics</summary>
-      <div>
-        <p class="tiny">Your files never leave this device — they are read and written in your browser only. We count anonymous page views and tool actions (such as “compression succeeded” and the JPG/PDF direction). We never collect file names, file contents, or IP addresses, and analytics never blocks the tool.</p>
-        <label class="optout" for="optout">
-          <input type="checkbox" id="optout">
-          <span id="optoutLabel">Don’t send anonymous usage counts</span>
-        </label>
-        <p class="tiny" id="optoutHint">Global Privacy Control and “Do Not Track” are respected automatically.</p>
-      </div>
-    </details>
   </div>
 </footer>
+
+<dialog id="privacyDialog" class="sheet" aria-labelledby="privacyTitle">
+  <div class="sheet-inner">
+    <div class="sheet-head">
+      <h2 id="privacyTitle">Privacy and analytics</h2>
+      <button type="button" class="icon-btn" id="privacyClose" aria-label="Close privacy settings">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+    <p>Files stay on this device. We count anonymous page views and whether a compression worked.</p>
+    <p>No file names, contents or IP addresses are collected.</p>
+    <label class="optout" for="optout">
+      <input type="checkbox" id="optout">
+      <span>Do not send anonymous usage counts</span>
+    </label>
+    <p class="tiny">Global Privacy Control and Do Not Track are respected.</p>
+    <p class="msg msg-ok" id="privacySaved" role="status" hidden></p>
+    <div class="sheet-actions">
+      <button type="button" class="btn-primary" id="privacySave">Save choice</button>
+      <button type="button" class="btn-quiet" id="privacyCancel">Cancel</button>
+    </div>
+  </div>
+</dialog>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* Under 200KB — private analytics dashboard client. */
+/* Under 200KB: private analytics dashboard client. */
 (function () {
   'use strict';
 
@@ -26,7 +26,11 @@
     dailyChart: $('dailyChart'),
     dailyWrap: $('dailyTableWrap'),
     gscBody: $('gscBody'),
-    footNote: $('footNote')
+    footNote: $('footNote'),
+    storageBox: $('storageBox'),
+    storageBadge: $('storageBadge'),
+    storageMessage: $('storageMessage'),
+    recheck: $('recheck')
   };
 
   var LABELS = {
@@ -57,7 +61,7 @@
   }
 
   function percent(value) {
-    if (!isFinite(value)) return '—';
+    if (!isFinite(value)) return 'n/a';
     return (value * 100).toFixed(value >= 0.1 ? 0 : 1) + '%';
   }
 
@@ -190,7 +194,7 @@
       '<dl class="kpi"><dt>Clicks</dt><dd>' + number(totals.clicks) + '</dd><div class="sub">' + report.startDate + ' → ' + report.endDate + '</div></dl>' +
       '<dl class="kpi"><dt>Impressions</dt><dd>' + number(totals.impressions) + '</dd><div class="sub">site-wide</div></dl>' +
       '<dl class="kpi"><dt>CTR</dt><dd>' + percent(totals.ctr) + '</dd><div class="sub">average</div></dl>' +
-      '<dl class="kpi"><dt>Avg. position</dt><dd>' + (totals.position || '—') + '</dd><div class="sub">impression-weighted</div></dl>' +
+      '<dl class="kpi"><dt>Avg. position</dt><dd>' + (totals.position || 'n/a') + '</dd><div class="sub">impression-weighted</div></dl>' +
       '</div>';
 
     if (report.queries && report.queries.length) {
@@ -210,6 +214,41 @@
     });
   }
 
+  function renderStorage(health) {
+    if (!el.storageBox) return;
+    el.storageBox.hidden = false;
+    var ok = health && health.storage && health.storage.reachable;
+    var counter = health && health.counters ? health.counters : {};
+    var badge = el.storageBadge;
+    badge.className = 'badge ' + (ok ? 'badge-ok' : 'badge-err');
+    badge.textContent = ok ? 'Storage OK' : 'Storage problem';
+    var message = health && health.storage && health.storage.message
+      ? health.storage.message
+      : 'Storage status unknown.';
+    if (ok && counter.daysTracked !== null && counter.daysTracked !== undefined) {
+      message += ' ' + counter.daysTracked + ' day' + (counter.daysTracked === 1 ? '' : 's') + ' recorded so far.';
+    }
+    el.storageMessage.textContent = message;
+  }
+
+  function checkHealth() {
+    if (!el.storageBox) return;
+    el.storageBox.hidden = false;
+    el.storageBadge.className = 'badge badge-idle';
+    el.storageBadge.textContent = 'Checking';
+    el.storageMessage.textContent = 'Checking the analytics database.';
+    fetch('/api/health', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then(function (response) { return response.json().catch(function () { return null; }); })
+      .then(renderStorage)
+      .catch(function () {
+        el.storageBadge.className = 'badge badge-err';
+        el.storageBadge.textContent = 'Storage problem';
+        el.storageMessage.textContent = 'The storage check could not run.';
+      });
+  }
+
+  if (el.recheck) el.recheck.addEventListener('click', checkHealth);
+
   function render(data) {
     state.data = data;
     el.loginCard.hidden = true;
@@ -223,6 +262,7 @@
       ? 'Showing ' + range.from + ' to ' + range.to + ' (UTC). Tracking started ' + (range.trackingSince || range.from) + '.'
       : 'No data recorded yet. Open the tool once to start counting.';
     if (range.truncated) showError('Showing the most recent 1500 days of an all-time range.');
+    checkHealth();
     el.footNote.textContent = 'Updated ' + new Date(data.generatedAt).toLocaleString() +
       ' · Counts are aggregates only. No file names, file contents or IP addresses are stored.';
     loadGsc();
@@ -258,6 +298,14 @@
             return null;
           }
           if (!response.ok || !body || body.ok === false) {
+            if (response.status === 502) {
+              // Signed in, but the database is not answering: keep the shell
+              // visible so the storage check can explain why.
+              el.loginCard.hidden = true;
+              el.dashboard.hidden = false;
+              el.rangeNote.textContent = '';
+              checkHealth();
+            }
             showError((body && body.error) || 'The dashboard could not load analytics data.');
             return null;
           }
@@ -265,7 +313,7 @@
         });
       })
       .then(function (body) { if (body) render(body); })
-      .catch(function () { showError('Network problem — the dashboard could not reach the analytics API.'); })
+      .catch(function () { showError('Network problem: the dashboard could not reach the analytics API.'); })
       .then(function () {
         state.loading = false;
         el.refresh.disabled = false;
@@ -291,6 +339,15 @@
         body: JSON.stringify({ password: password, range: state.range })
       }).then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (body) {
+          if (response.status === 502) {
+            // The cookie is set even when the database is down, so open the
+            // dashboard and let the storage check explain the problem.
+            el.loginCard.hidden = true;
+            el.dashboard.hidden = false;
+            showError(body.error || 'Analytics storage did not respond.');
+            checkHealth();
+            return null;
+          }
           if (!response.ok || !body.ok) {
             throw new Error(body.error || 'Sign in failed.');
           }
@@ -298,6 +355,7 @@
           return body;
         });
       }).then(function (body) {
+        if (!body) return;
         el.dashboard.hidden = false;
         render(body);
         el.loginCard.hidden = true;

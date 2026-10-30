@@ -1,7 +1,7 @@
 # Under 200KB
 
-Compress a JPG, PNG or single-page PDF to a strict file-size limit — and switch between JPG and
-PDF on the way out. An [Ushcodex Technologies](https://ushcodex.tech/) tool.
+Compress a JPG, PNG or one-page PDF to a strict file-size limit, and switch between JPG and PDF
+on the way out. An [Ushcodex Technologies](https://ushcodex.tech/) tool.
 
 **Live:** https://under200kb.ushcodex.tech/
 
@@ -23,7 +23,7 @@ nothing is uploaded, and no file name, content or size is ever sent anywhere.
 
 ```
 index.html          tool page (CSS is inlined at build time)
-styles.css          source of truth for styles — run `npm run inline-css` after editing
+styles.css          source of truth for styles, run `npm run inline-css` after editing
 app.js              the compressor
 analytics.js        opt-out aware, non-blocking analytics client
 sw.js               service worker (v3: network-first pages, SWR assets)
@@ -31,6 +31,7 @@ dashboard.html/.js  private analytics dashboard
 api/collect.js      POST counter endpoint
 api/stats.js        protected dashboard feed
 api/gsc.js          Search Console aggregate
+api/health.js       storage self check shown in the dashboard
 vendor/             self-hosted pdf.js + jsPDF (no CDN, works offline)
 fonts/              self-hosted Inter + Space Mono subsets
 docs/ANALYTICS.md   analytics design, privacy posture and environment setup

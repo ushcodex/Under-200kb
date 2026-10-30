@@ -27,6 +27,7 @@ if (!process.env.U200_ANALYTICS_REDIS_REST_URL) {
     switch (command) {
       case 'HINCRBY': { const h = hash(args[1]); const next = Number(h.get(args[2]) || 0) + Number(args[3]); h.set(args[2], String(next)); return next; }
       case 'HSET': { const h = hash(args[1]); for (let i = 2; i < args.length; i += 2) h.set(args[i], String(args[i + 1])); return 1; }
+      case 'HGET': { const h = hash(args[1]); return h.has(args[2]) ? h.get(args[2]) : null; }
       case 'HGETALL': { const out = []; hash(args[1]).forEach((v, k) => out.push(k, v)); return out; }
       case 'SADD': { if (!sets.has(args[1])) sets.set(args[1], new Set()); sets.get(args[1]).add(args[2]); return 1; }
       case 'SMEMBERS': return [...(sets.get(args[1]) || [])];
@@ -37,6 +38,8 @@ if (!process.env.U200_ANALYTICS_REDIS_REST_URL) {
       case 'INCR': { const next = Number(strings.get(args[1]) || 0) + 1; strings.set(args[1], String(next)); return next; }
       case 'EXPIRE': return 1;
       case 'TTL': return 900;
+      case 'PING': return 'PONG';
+      case 'DEL': { strings.delete(args[1]); hashes.delete(args[1]); sets.delete(args[1]); hll.delete(args[1]); return 1; }
       default: throw new Error('unsupported ' + command);
     }
   };
@@ -64,7 +67,8 @@ if (!process.env.U200_ANALYTICS_REDIS_REST_URL) {
 const handlers = {
   '/api/collect': require(path.join(root, 'api/collect.js')),
   '/api/stats': require(path.join(root, 'api/stats.js')),
-  '/api/gsc': require(path.join(root, 'api/gsc.js'))
+  '/api/gsc': require(path.join(root, 'api/gsc.js')),
+  '/api/health': require(path.join(root, 'api/health.js'))
 };
 
 const TYPES = {

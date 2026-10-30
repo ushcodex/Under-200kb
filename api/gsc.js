@@ -1,4 +1,4 @@
-/* GET /api/gsc — aggregate Google Search Console performance for the
+/* GET /api/gsc: aggregate Google Search Console performance for the
  * Under 200KB property. Requires a signed-in dashboard session and an optional
  * read-only service account:
  *

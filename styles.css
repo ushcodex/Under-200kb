@@ -1,5 +1,5 @@
-/* Under 200KB — Ushcodex Technologies
-   Palette: paper #f7f6f2 · ink #1b1a20 · purple #5f30aa · accent #ef7738
+/* Under 200KB by Ushcodex Technologies
+   Palette: paper #f7f6f2, ink #1b1a20, purple #5f30aa, accent #ef7738
    Text pairs are chosen for WCAG AA (most AAA): see tests/contrast.test.mjs */
 
 @font-face {
@@ -132,14 +132,6 @@ a:hover { color: var(--purple-dark); }
 main { flex: 1 0 auto; padding-bottom: 2.5rem; }
 
 .intro { padding: 1.75rem 0 1.25rem; max-width: 40rem; }
-.eyebrow {
-  margin: 0 0 .5rem;
-  font-size: .8125rem;
-  font-weight: 600;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--orange-ink);
-}
 h1 {
   font-size: clamp(1.7rem, 6vw, 2.35rem);
   line-height: 1.1;
@@ -425,13 +417,7 @@ fieldset > legend { margin-bottom: .45rem; }
 .result-stats dt { font-size: .75rem; color: var(--ink-3); margin: 0; }
 .result-stats dd { margin: .1rem 0 0; font-family: var(--mono); font-size: .9375rem; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 
-.out-name {
-  margin: 1rem 0 .4rem;
-  font-size: .875rem;
-  color: var(--ink-3);
-}
-.out-name b { display: block; font-family: var(--mono); font-size: .875rem; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
-
+.result .btn-primary { margin-top: 1rem; }
 .result-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
 .result-actions .btn-quiet { min-height: 2.75rem; flex: 1 1 8rem; }
 
@@ -442,10 +428,44 @@ footer p { margin: 0; }
 footer a { color: var(--ink-2); }
 footer a:hover { color: var(--purple-dark); }
 
-details.privacy { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: .6rem .8rem; }
-details.privacy summary { cursor: pointer; font-weight: 600; color: var(--ink-2); min-height: 1.75rem; display: flex; align-items: center; gap: .4rem; }
-details.privacy summary::marker { color: var(--purple); }
-details.privacy > div { padding-top: .55rem; display: grid; gap: .55rem; }
+.privacy-row { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; }
+.privacy-row .tiny { margin: 0; }
+
+/* opt-out dialog */
+.sheet {
+  width: min(30rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 24px 60px -20px rgba(27, 26, 32, .45);
+  overflow: auto;
+}
+.sheet::backdrop { background: rgba(27, 26, 32, .42); }
+.sheet-inner { display: grid; gap: .7rem; padding: 1.1rem; }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.sheet-head h2 { margin: 0; font-size: 1.125rem; font-weight: 600; }
+.sheet-inner p { margin: 0; font-size: .875rem; color: var(--ink-2); }
+.sheet-inner .tiny { color: var(--ink-3); }
+.sheet-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .35rem; }
+.sheet-actions .btn-primary { flex: 1 1 10rem; }
+.sheet-actions .btn-quiet { flex: 0 0 auto; min-height: 3.25rem; }
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--line-control);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--purple); color: var(--purple-dark); }
+
 .optout { display: flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--ink-2); }
 .optout input { width: 1.15rem; height: 1.15rem; accent-color: var(--purple); flex: 0 0 auto; }
 .tiny { font-size: .8125rem; color: var(--ink-3); }
